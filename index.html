@@ -1147,9 +1147,13 @@
       });
     }
 
+    function getCssVar(name) {
+      return getComputedStyle(document.documentElement).getPropertyValue(name).trim() || '#f2f7f2';
+    }
+
     // Config globale Chart.js pour mode sombre
     if (window.Chart) {
-      Chart.defaults.color = 'var(--color-text)';
+      Chart.defaults.color = getCssVar('--color-text');
       Chart.defaults.borderColor = 'rgba(255,255,255,0.1)';
       Chart.defaults.font.family = "'Inter', sans-serif";
     }
@@ -1200,11 +1204,11 @@
           scales: {
             x: {
               grid: { color: 'rgba(255,255,255,0.10)' },
-              ticks: { color: 'var(--color-text)' }
+              ticks: { color: getCssVar('--color-text') }
             },
             y: {
               grid: { display: false },
-              ticks: { color: 'var(--color-text)' }
+              ticks: { color: getCssVar('--color-text') }
             }
           }
         }
@@ -1241,11 +1245,11 @@
           scales: {
             x: {
               grid: { display: false },
-              ticks: { color: 'var(--color-text)' }
+              ticks: { color: getCssVar('--color-text') }
             },
             y: {
               grid: { color: 'rgba(255,255,255,0.10)' },
-              ticks: { color: 'var(--color-text)', stepSize: 1 }
+              ticks: { color: getCssVar('--color-text'), stepSize: 1 }
             }
           }
         }
