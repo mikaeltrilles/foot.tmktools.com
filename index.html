@@ -348,6 +348,31 @@
     }
     .match-status .status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--color-text-faint); }
     .match-status .status-dot.live { background: var(--color-live); animation: pulse 1.5s ease-in-out infinite; }
+
+    /* Badges de statut */
+    .badge-status {
+      display: inline-flex; align-items: center; gap: var(--space-1);
+      font-size: var(--text-xs); font-weight: 600;
+      padding: var(--space-1) var(--space-3);
+      border-radius: var(--radius-md);
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+    .badge-status.finished {
+      background: rgba(46,204,113,0.15);
+      color: #2ecc71;
+      border: 1px solid rgba(46,204,113,0.3);
+    }
+    .badge-status.upcoming {
+      background: rgba(52,152,219,0.15);
+      color: #3498db;
+      border: 1px solid rgba(52,152,219,0.3);
+    }
+    .badge-status.live {
+      background: rgba(231,76,60,0.15);
+      color: #ff5e52;
+      border: 1px solid rgba(231,76,60,0.3);
+    }
     .match-teams { display: flex; align-items: center; justify-content: center; gap: var(--space-4); flex-wrap: wrap; }
     .match-team { display: flex; flex-direction: column; align-items: center; gap: var(--space-2); flex: 1; min-width: 120px; }
     .match-team .flag { width: 56px; height: 40px; border-radius: 4px; display: inline-block; vertical-align: middle; overflow: hidden; box-shadow: 0 2px 6px rgba(0,0,0,0.3); }
@@ -375,6 +400,8 @@
     .data-table tr:hover td { background: var(--color-surface-2); }
     .data-table .stars { color: var(--color-gold); letter-spacing: 2px; }
     .data-table .rank { font-weight: 700; color: var(--color-primary); }
+    .flag-tiny { display: inline-block; width: 24px; height: 16px; border-radius: 2px; vertical-align: middle; margin-right: var(--space-2); overflow: hidden; }
+    .flag-tiny img { width: 100%; height: 100%; object-fit: cover; }
 
     /* Prochaines CdM */
     .wc-card {
@@ -563,14 +590,14 @@
             </tr>
           </thead>
           <tbody id="palmares-body">
-            <tr><td class="rank">1</td><td>🇧🇷 Brésil</td><td>5</td><td class="stars">⭐⭐⭐⭐⭐</td><td>1958, 1962, 1970, 1994, 2002</td></tr>
-            <tr><td class="rank">2</td><td>🇩🇪 Allemagne</td><td>4</td><td class="stars">⭐⭐⭐⭐</td><td>1954, 1974, 1990, 2014</td></tr>
-            <tr><td class="rank">2</td><td>🇮🇹 Italie</td><td>4</td><td class="stars">⭐⭐⭐⭐</td><td>1934, 1938, 1982, 2006</td></tr>
-            <tr><td class="rank">4</td><td>🇦🇷 Argentine</td><td>3</td><td class="stars">⭐⭐⭐</td><td>1978, 1986, 2022</td></tr>
-            <tr><td class="rank">5</td><td>🇫🇷 France</td><td>2</td><td class="stars">⭐⭐</td><td>1998, 2018</td></tr>
-            <tr><td class="rank">5</td><td>🇺🇾 Uruguay</td><td>2</td><td class="stars">⭐⭐</td><td>1930, 1950</td></tr>
-            <tr><td class="rank">7</td><td>🏴󠁧󠁢󠁥󠁮󠁧󠁿 Angleterre</td><td>1</td><td class="stars">⭐</td><td>1966</td></tr>
-            <tr><td class="rank">7</td><td>🇪🇸 Espagne</td><td>1</td><td class="stars">⭐</td><td>2010</td></tr>
+            <tr><td class="rank">1</td><td><span class="flag-tiny"><img src="https://flagcdn.com/br.svg" alt="Brésil" loading="lazy"></span> Brésil</td><td>5</td><td class="stars">⭐⭐⭐⭐⭐</td><td>1958, 1962, 1970, 1994, 2002</td></tr>
+            <tr><td class="rank">2</td><td><span class="flag-tiny"><img src="https://flagcdn.com/de.svg" alt="Allemagne" loading="lazy"></span> Allemagne</td><td>4</td><td class="stars">⭐⭐⭐⭐</td><td>1954, 1974, 1990, 2014</td></tr>
+            <tr><td class="rank">2</td><td><span class="flag-tiny"><img src="https://flagcdn.com/it.svg" alt="Italie" loading="lazy"></span> Italie</td><td>4</td><td class="stars">⭐⭐⭐⭐</td><td>1934, 1938, 1982, 2006</td></tr>
+            <tr><td class="rank">4</td><td><span class="flag-tiny"><img src="https://flagcdn.com/ar.svg" alt="Argentine" loading="lazy"></span> Argentine</td><td>3</td><td class="stars">⭐⭐⭐</td><td>1978, 1986, 2022</td></tr>
+            <tr><td class="rank">5</td><td><span class="flag-tiny"><img src="https://flagcdn.com/fr.svg" alt="France" loading="lazy"></span> France</td><td>2</td><td class="stars">⭐⭐</td><td>1998, 2018</td></tr>
+            <tr><td class="rank">5</td><td><span class="flag-tiny"><img src="https://flagcdn.com/uy.svg" alt="Uruguay" loading="lazy"></span> Uruguay</td><td>2</td><td class="stars">⭐⭐</td><td>1930, 1950</td></tr>
+            <tr><td class="rank">7</td><td><span class="flag-tiny"><img src="https://flagcdn.com/gb-eng.svg" alt="Angleterre" loading="lazy"></span> Angleterre</td><td>1</td><td class="stars">⭐</td><td>1966</td></tr>
+            <tr><td class="rank">7</td><td><span class="flag-tiny"><img src="https://flagcdn.com/es.svg" alt="Espagne" loading="lazy"></span> Espagne</td><td>1</td><td class="stars">⭐</td><td>2010</td></tr>
           </tbody>
         </table>
       </div>
@@ -661,6 +688,25 @@
       'Estadio Akron': 'Zapopan',
       'BMO Field': 'Toronto',
       'BC Place': 'Vancouver',
+    };
+
+    const STADIUM_COUNTRIES = {
+      'MetLife Stadium': 'USA',
+      'AT&T Stadium': 'USA',
+      'Mercedes-Benz Stadium': 'USA',
+      'Arrowhead Stadium': 'USA',
+      'NRG Stadium': 'USA',
+      'Levi\'s Stadium': 'USA',
+      'SoFi Stadium': 'USA',
+      'Lincoln Financial Field': 'USA',
+      'Lumen Field': 'USA',
+      'Gillette Stadium': 'USA',
+      'Hard Rock Stadium': 'USA',
+      'Estadio Azteca': 'Mexique',
+      'Estadio BBVA': 'Mexique',
+      'Estadio Akron': 'Mexique',
+      'BMO Field': 'Canada',
+      'BC Place': 'Canada',
     };
 
     let currentWC = null;
@@ -973,6 +1019,9 @@
 
       let hasLive = false;
 
+      // Trier par date croissante
+      filtered.sort((a, b) => new Date(a.utcDate) - new Date(b.utcDate));
+
       container.innerHTML = filtered.map(m => {
         let homeScore = (m.score && m.score.fullTime) ? m.score.fullTime.home : '-';
         let awayScore = (m.score && m.score.fullTime) ? m.score.fullTime.away : '-';
@@ -984,6 +1033,7 @@
         const phase = formatPhase(m.stage);
         const venue = m.venue || 'Stade à confirmer';
         const city = STADIUM_CITIES[venue] || '';
+        const country = STADIUM_COUNTRIES[venue] || '';
         const localTime = toLocalTime(m.utcDate, venue);
         const parisTime = toParisTime(m.utcDate);
         const dateObj = new Date(m.utcDate);
@@ -998,11 +1048,17 @@
         if (homeScore !== '-' && homeScore !== null) previousScores.set(prevKey, homeScore);
         if (awayScore !== '-' && awayScore !== null) previousScores.set(prevAwayKey, awayScore);
 
+        // Badge coloré selon le statut
+        let badgeClass = '';
+        if (m.status === 'FINISHED' || m.status === 'AWARDED') badgeClass = 'finished';
+        else if (m.status === 'IN_PLAY' || m.status === 'PAUSED') badgeClass = 'live';
+        else badgeClass = 'upcoming';
+
         return `
           <article class="match-card${flashClass}" data-status="${m.status}" data-match-id="${m.id}">
             <div class="match-header">
               <span class="match-phase">${phase}${m.group ? ' · ' + m.group : ''}</span>
-              <span class="match-status"><span class="${dotClass}" aria-hidden="true"></span> ${statusLabel}${minute}</span>
+              <span class="badge-status ${badgeClass}"><span class="${dotClass}" aria-hidden="true"></span> ${statusLabel}${minute}</span>
             </div>
             <div class="match-teams">
               <div class="match-team">
@@ -1018,7 +1074,7 @@
             <div class="match-meta">
               <div class="match-meta-row">📅 ${dateStr}</div>
               <div class="match-meta-row">🕐 ${localTime} (local) · <span class="time-paris">${parisTime} (Paris)</span></div>
-              <div class="match-meta-row">📍 ${venue}${city ? ' — ' + city : ''}</div>
+              <div class="match-meta-row">📍 ${venue}${city ? ' - ' + city : ''}${country ? ' - ' + country : ''}</div>
             </div>
           </article>
         `;
@@ -1035,7 +1091,7 @@
       const container = document.getElementById('prochaines-list');
       if (!container) return;
       const now = new Date();
-      const futureCups = WORLD_CUPS.filter(wc => new Date(wc.end) > now);
+      const futureCups = WORLD_CUPS.filter(wc => new Date(wc.end) > now).slice(0, 3);
       container.innerHTML = futureCups.map(wc => {
         const startDate = new Date(wc.start);
         const isActive = now >= startDate && now <= new Date(wc.end);
@@ -1076,6 +1132,13 @@
           el.innerHTML = '<span class="badge-done">✅ Terminé</span>';
         }
       });
+    }
+
+    // Config globale Chart.js pour mode sombre
+    if (window.Chart) {
+      Chart.defaults.color = 'var(--color-text)';
+      Chart.defaults.borderColor = 'rgba(255,255,255,0.1)';
+      Chart.defaults.font.family = "'Inter', sans-serif";
     }
 
     function initGoalsChart(matches) {
