@@ -1100,22 +1100,86 @@
       });
     }
 
-    function initTheme() {
-      const btn = document.getElementById('theme-toggle');
+    // ──────────────────────────────────────────────
+    //  THEME AUTO — Lever / coucher du soleil à Paris
+    // ──────────────────────────────────────────────
+    let manualThemeOverride = false;
+
+    function getDayOfYear(date) {
+      const start = new Date(date.getFullYear(), 0, 0);
+      return Math.floor((date - start) / (1000 * 60 * 60 * 24));
+    }
+
+    function getSunTimesParis(date = new Date()) {
+      const lat = 48.8566; // Latitude Paris
+      const dayOfYear = getDayOfYear(date);
+      // Déclinaison solaire (approximation)
+      const declination = 23.45 * Math.sin((360 / 365.25) * (dayOfYear + 284) * Math.PI / 180);
+      const latRad = lat * Math.PI / 180;
+      const decRad = declination * Math.PI / 180;
+      let cosHourAngle = -Math.tan(latRad) * Math.tan(decRad);
+      cosHourAngle = Math.max(-1, Math.min(1, cosHourAngle));
+      const hourAngleDeg = Math.acos(cosHourAngle) * 180 / Math.PI;
+      const daylightHours = hourAngleDeg / 15;
+      const sunriseUTC = 12 - daylightHours;
+      const sunsetUTC  = 12 + daylightHours;
+
+      // Convertir heures UTC → heure de Paris
+      function utcToParisHours(hoursUTC, refDate) {
+        const h = Math.floor(hoursUTC);
+        const m = Math.round((hoursUTC - h) * 60);
+        const utc = new Date(Date.UTC(refDate.getFullYear(), refDate.getMonth(), refDate.getDate(), h, m));
+        const paris = new Date(utc.toLocaleString('en-US', { timeZone: 'Europe/Paris' }));
+        return paris.getHours() + paris.getMinutes() / 60;
+      }
+
+      return {
+        sunrise: utcToParisHours(sunriseUTC, date),
+        sunset:  utcToParisHours(sunsetUTC, date)
+      };
+    }
+
+    function applyAutoTheme() {
+      if (manualThemeOverride) return;
+      const now = new Date();
+      const parisStr = now.toLocaleString('en-US', { timeZone: 'Europe/Paris', hour12: false });
+      const [ph, pm] = parisStr.split(', ')[1].split(':').map(Number);
+      const parisHour = ph + pm / 60;
+      const { sunrise, sunset } = getSunTimesParis(now);
+      const isDark = parisHour < sunrise || parisHour >= sunset;
+      const target = isDark ? 'dark' : 'light';
+      if (document.documentElement.getAttribute('data-theme') !== target) {
+        document.documentElement.setAttribute('data-theme', target);
+        updateThemeIcons();
+      }
+    }
+
+    function updateThemeIcons() {
       const moon = document.getElementById('icon-moon');
       const sun = document.getElementById('icon-sun');
+      if (!moon || !sun) return;
+      const theme = document.documentElement.getAttribute('data-theme');
+      if (theme === 'light') { moon.classList.add('hidden'); sun.classList.remove('hidden'); }
+      else { moon.classList.remove('hidden'); sun.classList.add('hidden'); }
+    }
+
+    function initTheme() {
+      const btn = document.getElementById('theme-toggle');
       if (!btn) return;
-      function updateIcons() {
-        const theme = document.documentElement.getAttribute('data-theme');
-        if (theme === 'light') { moon.classList.add('hidden'); sun.classList.remove('hidden'); }
-        else { moon.classList.remove('hidden'); sun.classList.add('hidden'); }
-      }
+
+      // Appliquer le thème automatique immédiatement au chargement
+      applyAutoTheme();
+
+      // Vérifier toutes les minutes (sans écraser le toggle manuel)
+      setInterval(applyAutoTheme, 60_000);
+
+      // Toggle manuel : override la détection automatique
       btn.addEventListener('click', () => {
+        manualThemeOverride = true;
         const current = document.documentElement.getAttribute('data-theme');
         document.documentElement.setAttribute('data-theme', current === 'light' ? 'dark' : 'light');
-        updateIcons();
+        updateThemeIcons();
       });
-      updateIcons();
     }
 
     function initScrollReveal() {
