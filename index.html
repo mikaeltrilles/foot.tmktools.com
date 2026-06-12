@@ -384,6 +384,7 @@
     .match-meta-row { display: block; margin: var(--space-1) 0; }
     .match-meta-row:first-child { margin-top: 0; }
     .match-meta-row:last-child { margin-bottom: 0; }
+    .refresh-indicator { display: block; margin-top: var(--space-2); font-size: 10px; color: var(--color-text-muted); opacity: 0.8; letter-spacing: 0.02em; }
 
     /* Skeleton */
     .skeleton {
@@ -839,6 +840,7 @@
     };
 
     let previousScores = new Map();
+    let lastRefreshTime = new Map();
 
     function toParisTime(utcString) {
       try {
@@ -1071,7 +1073,7 @@
                 <span class="flag" aria-hidden="true">${flagForTeam(m.homeTeam?.name || 'TBD')}</span>
                 <span class="name">${m.homeTeam?.name || 'TBD'}</span>
               </div>
-              <div class="match-score" aria-label="Score ${homeScore} à ${awayScore}">${(homeScore === '-' && awayScore === '-') ? 'vs' : homeScore + ' – ' + awayScore}</div>
+              <div class="match-score" aria-label="Score ${homeScore} à ${awayScore}">${(homeScore === '-' && awayScore === '-') ? (isLive ? '0 – 0' : 'vs') : homeScore + ' – ' + awayScore}</div>
               <div class="match-team">
                 <span class="flag" aria-hidden="true">${flagForTeam(m.awayTeam?.name || 'TBD')}</span>
                 <span class="name">${m.awayTeam?.name || 'TBD'}</span>
@@ -1081,6 +1083,7 @@
               <div class="match-meta-row">📅 ${dateStr}</div>
               <div class="match-meta-row">🕐 ${localTime} (local) · <span class="time-paris">${parisTime} (Paris)</span></div>
               <div class="match-meta-row">📍 ${venue}${city ? ' - ' + city : ''}${country ? ' - ' + country : ''}</div>
+              ${(isLive && lastRefreshTime.has(m.id)) ? `<span class="refresh-indicator">Maj ${new Date(lastRefreshTime.get(m.id)).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit',second:'2-digit'})}</span>` : ''}
             </div>
           </article>
         `;
@@ -1249,6 +1252,8 @@
       if (!wc) return;
       const fallback = STATIC_FALLBACK_MATCHES[wc.year] || STATIC_FALLBACK_MATCHES[2026] || [];
       if (!API_KEY) {
+        const now = Date.now();
+        fallback.forEach(m => lastRefreshTime.set(m.id, now));
         renderMatches(fallback, wc);
         initGoalsChart(fallback);
         updateLastRefresh(true);
@@ -1261,6 +1266,8 @@
         );
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
+        const now = Date.now();
+        data.matches.forEach(m => lastRefreshTime.set(m.id, now));
         renderMatches(data.matches, wc);
         initGoalsChart(data.matches);
         updateLastRefresh(false);
@@ -1404,7 +1411,7 @@
       initScrollReveal();
       updateFooterTimes();
 
-      const intervalMs = currentWC.isLive ? 30000 : currentWC.isSoon ? 300000 : 3600000;
+      const intervalMs = currentWC.isLive ? 60000 : currentWC.isSoon ? 300000 : 3600000;
       if (refreshInterval) clearInterval(refreshInterval);
       refreshInterval = setInterval(async () => {
         currentWC = await autoDiscoverWorldCup();
