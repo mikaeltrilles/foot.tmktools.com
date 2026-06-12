@@ -551,10 +551,9 @@
       </h2>
 
       <div class="tabs" role="tablist" aria-label="Filtrer les matchs">
-        <button class="tab" role="tab" aria-selected="false" data-filter="all" tabindex="-1">Tous</button>
-        <button class="tab" role="tab" aria-selected="false" data-filter="live" tabindex="-1">En cours</button>
+        <button class="tab" role="tab" aria-selected="true" data-filter="live" tabindex="0">En cours</button>
+        <button class="tab" role="tab" aria-selected="false" data-filter="upcoming" tabindex="-1">À venir</button>
         <button class="tab" role="tab" aria-selected="false" data-filter="finished" tabindex="-1">Terminés</button>
-        <button class="tab" role="tab" aria-selected="true" data-filter="upcoming" tabindex="0">À venir</button>
       </div>
 
       <div id="matches-list" role="region" aria-live="polite" aria-label="Liste des matchs">
@@ -1015,7 +1014,6 @@
         const isProbablyLive = (m.status === 'TIMED' || m.status === 'SCHEDULED') && nowUTC >= matchTime;
         const effectiveStatus = isProbablyLive ? 'IN_PLAY' : m.status;
 
-        if (activeFilter === 'all') return true;
         if (activeFilter === 'live') return effectiveStatus === 'IN_PLAY' || effectiveStatus === 'PAUSED' || effectiveStatus === 'LIVE';
         if (activeFilter === 'finished') return m.status === 'FINISHED' || m.status === 'AWARDED';
         if (activeFilter === 'upcoming') return (m.status === 'SCHEDULED' || m.status === 'POSTPONED' || m.status === 'TIMED') && nowUTC < matchTime;
