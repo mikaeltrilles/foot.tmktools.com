@@ -21,18 +21,18 @@
        DESIGN SYSTEM — World Cup 2026 Dashboard
        ═══════════════════════════════════════════ */
     :root {
-      --color-bg: #0a0f0a;
-      --color-surface: #111811;
-      --color-surface-2: #162016;
-      --color-surface-offset: #1e2a1e;
-      --color-border: rgba(255,255,255,0.08);
-      --color-text: #f0f4f0;
-      --color-text-muted: #8a9e8a;
-      --color-text-faint: #4a5e4a;
-      --color-primary: #2ecc71;
-      --color-primary-hover: #27ae60;
-      --color-gold: #f0c040;
-      --color-live: #e74c3c;
+      --color-bg: #080c08;
+      --color-surface: #121b12;
+      --color-surface-2: #1a261a;
+      --color-surface-offset: #243524;
+      --color-border: rgba(255,255,255,0.12);
+      --color-text: #f2f7f2;
+      --color-text-muted: #a3c2a3;
+      --color-text-faint: #7a9a7a;
+      --color-primary: #3ddc84;
+      --color-primary-hover: #2ecc71;
+      --color-gold: #f5d050;
+      --color-live: #ff5e52;
       --radius-sm: 0.375rem;
       --radius-md: 0.5rem;
       --radius-lg: 0.75rem;
@@ -115,7 +115,7 @@
       position: sticky;
       top: 0;
       z-index: 100;
-      background: rgba(10,15,10,0.85);
+      background: rgba(8,12,8,0.88);
       backdrop-filter: blur(12px);
       -webkit-backdrop-filter: blur(12px);
       border-bottom: 1px solid var(--color-border);
@@ -965,7 +965,7 @@
           },
           scales: {
             x: {
-              grid: { color: 'rgba(255,255,255,0.05)' },
+              grid: { color: 'rgba(255,255,255,0.10)' },
               ticks: { color: 'var(--color-text-muted)' }
             },
             y: {
@@ -1010,7 +1010,7 @@
               ticks: { color: 'var(--color-text-muted)' }
             },
             y: {
-              grid: { color: 'rgba(255,255,255,0.05)' },
+              grid: { color: 'rgba(255,255,255,0.10)' },
               ticks: { color: 'var(--color-text-muted)', stepSize: 1 }
             }
           }
