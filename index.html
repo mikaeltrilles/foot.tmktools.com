@@ -301,6 +301,21 @@
     .team-chip .conf { font-size: var(--text-xs); color: var(--color-text-faint); margin-left: auto; }
     .team-chip .group-badge { font-size: var(--text-xs); background: var(--color-gold); color: #111; padding: 2px 6px; border-radius: var(--radius-sm); font-weight: 700; margin-left: var(--space-2); }
 
+    /* Group sections for teams */
+    .group-section {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      padding: var(--space-4) var(--space-6);
+      margin-bottom: var(--space-6);
+    }
+    .group-section:last-child { margin-bottom: 0; }
+    .teams-pc-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: var(--space-3);
+    }
+
     /* Matches */
     .tabs { display: flex; gap: var(--space-2); margin-bottom: var(--space-6); overflow-x: auto; -ms-overflow-style: none; scrollbar-width: none; }
     .tabs::-webkit-scrollbar { display: none; }
@@ -491,7 +506,7 @@
       </div>
 
       <h3 style="font-size: var(--text-lg); margin-bottom: var(--space-4); margin-top: var(--space-8); color: var(--color-text-muted);">48 Équipes qualifiées</h3>
-      <div class="grid grid-6" id="teams-grid" role="list">
+      <div id="teams-grid" role="list">
         <!-- Généré par JS -->
       </div>
     </section>
