@@ -1239,7 +1239,14 @@
     function initPalmaresChart() {
       const ctx = document.getElementById('palmares-chart');
       if (!ctx || !window.Chart) return;
-      const labels = ['CONMEBOL', 'UEFA', 'CAF', 'CONCACAF', 'AFC', 'OFC'];
+      const labels = [
+        'CONMEBOL — Confederación Sudamericana de Fútbol',
+        'UEFA — Union des associations européennes de football',
+        'CAF — Confédération africaine de football',
+        'CONCACAF — Confederation of North, Central America and Caribbean Association Football',
+        'AFC — Asian Football Confederation',
+        'OFC — Oceania Football Confederation'
+      ];
       const data = [10, 12, 0, 0, 0, 0];
       const colors = [
         'rgba(46,204,113,0.7)', 'rgba(240,192,64,0.7)', 'rgba(231,76,60,0.7)',
