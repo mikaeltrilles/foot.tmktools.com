@@ -2,3 +2,5 @@
 .DS_Store
 node_modules/
 *.log
+wc_*.json
+wc_*.txt
