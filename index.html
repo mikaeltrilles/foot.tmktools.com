@@ -3,6 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
   <title>foot.tmktools.com — Coupe du Monde FIFA en temps réel</title>
   <meta name="description" content="Suivi live de la Coupe du Monde de Football FIFA. Scores, équipes, stades, palmarès et compte à rebours.">
   <meta property="og:title" content="foot.tmktools.com — Coupe du Monde FIFA">
@@ -907,7 +910,7 @@
       if (!API_KEY) return detectActiveWorldCup();
       try {
         const res = await fetch(
-          `https://api.football-data.org/v4/competitions/${WC_COMPETITION_CODE}`,
+          `https://api.football-data.org/v4/competitions/${WC_COMPETITION_CODE}?nocache=${Date.now()}`,
           { headers: { 'X-Auth-Token': API_KEY } }
         );
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -1262,7 +1265,7 @@
       }
       try {
         const res = await fetch(
-          `https://api.football-data.org/v4/competitions/${WC_COMPETITION_CODE}/matches`,
+          `https://api.football-data.org/v4/competitions/${WC_COMPETITION_CODE}/matches?nocache=${Date.now()}`,
           { headers: { 'X-Auth-Token': API_KEY } }
         );
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
