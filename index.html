@@ -1009,11 +1009,16 @@
       }
 
       const activeFilter = document.querySelector('.tab[aria-selected="true"]')?.dataset.filter || 'all';
+      const nowUTC = new Date();
       const filtered = matches.filter(m => {
+        const matchTime = new Date(m.utcDate);
+        const isProbablyLive = (m.status === 'TIMED' || m.status === 'SCHEDULED') && nowUTC >= matchTime;
+        const effectiveStatus = isProbablyLive ? 'IN_PLAY' : m.status;
+
         if (activeFilter === 'all') return true;
-        if (activeFilter === 'live') return m.status === 'IN_PLAY' || m.status === 'PAUSED';
+        if (activeFilter === 'live') return effectiveStatus === 'IN_PLAY' || effectiveStatus === 'PAUSED' || effectiveStatus === 'LIVE';
         if (activeFilter === 'finished') return m.status === 'FINISHED' || m.status === 'AWARDED';
-        if (activeFilter === 'upcoming') return m.status === 'SCHEDULED' || m.status === 'POSTPONED';
+        if (activeFilter === 'upcoming') return m.status === 'SCHEDULED' || m.status === 'POSTPONED' || m.status === 'TIMED';
         return true;
       });
 
@@ -1027,9 +1032,12 @@
         let awayScore = (m.score && m.score.fullTime) ? m.score.fullTime.away : '-';
         if (homeScore === null || homeScore === undefined) homeScore = '-';
         if (awayScore === null || awayScore === undefined) awayScore = '-';
-        const isLive = m.status === 'IN_PLAY' || m.status === 'PAUSED';
+        const nowForLive = new Date();
+        const matchTimeForLive = new Date(m.utcDate);
+        const isProbablyLiveClient = (m.status === 'TIMED' || m.status === 'SCHEDULED') && nowForLive >= matchTimeForLive;
+        const isLive = m.status === 'IN_PLAY' || m.status === 'PAUSED' || m.status === 'LIVE' || isProbablyLiveClient;
         if (isLive) hasLive = true;
-        const statusLabel = getStatusLabel(m.status);
+        const statusLabel = isProbablyLiveClient ? 'EN COURS' : getStatusLabel(m.status);
         const phase = formatPhase(m.stage);
         const venue = m.venue || 'Stade à confirmer';
         const city = STADIUM_CITIES[venue] || '';
@@ -1038,7 +1046,7 @@
         const parisTime = toParisTime(m.utcDate);
         const dateObj = new Date(m.utcDate);
         const dateStr = dateObj.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' });
-        const minute = m.minute ? ` (${m.minute}')` : '';
+        const minute = (isLive && m.minute) ? ` (${m.minute}')` : '';
         const dotClass = isLive ? 'status-dot live' : 'status-dot';
         const prevKey = `${m.id}-home`;
         const prevAwayKey = `${m.id}-away`;
@@ -1048,10 +1056,10 @@
         if (homeScore !== '-' && homeScore !== null) previousScores.set(prevKey, homeScore);
         if (awayScore !== '-' && awayScore !== null) previousScores.set(prevAwayKey, awayScore);
 
-        // Badge coloré selon le statut
+        // Badge coloré selon le statut (effective)
         let badgeClass = '';
         if (m.status === 'FINISHED' || m.status === 'AWARDED') badgeClass = 'finished';
-        else if (m.status === 'IN_PLAY' || m.status === 'PAUSED') badgeClass = 'live';
+        else if (isLive) badgeClass = 'live';
         else badgeClass = 'upcoming';
 
         return `
