@@ -1239,7 +1239,8 @@
     function initPalmaresChart() {
       const ctx = document.getElementById('palmares-chart');
       if (!ctx || !window.Chart) return;
-      const labels = [
+      const chartLabels = ['CONMEBOL', 'UEFA', 'CAF', 'CONCACAF', 'AFC', 'OFC'];
+      const legendLabels = [
         'CONMEBOL — Confederación Sudamericana de Fútbol',
         'UEFA — Union des associations européennes de football',
         'CAF — Confédération africaine de football',
@@ -1256,7 +1257,7 @@
       palmaresChartInstance = new Chart(ctx, {
         type: 'bar',
         data: {
-          labels,
+          labels: chartLabels,
           datasets: [{
             label: 'Titres',
             data,
@@ -1283,7 +1284,7 @@
       // Légende HTML personnalisée
       const legendEl = document.getElementById('palmares-legend');
       if (legendEl) {
-        legendEl.innerHTML = labels.map((lbl, i) =>
+        legendEl.innerHTML = legendLabels.map((lbl, i) =>
           `<div class="legend-item"><span class="legend-dot" style="background:${colors[i]}"></span><span>${lbl}</span></div>`
         ).join('');
       }
