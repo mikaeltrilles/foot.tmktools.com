@@ -675,15 +675,27 @@
     };
 
     const STATIC_FALLBACK_MATCHES = {
+      // CdM 2026 — matchs à venir (aucun score fictif)
       2026: [
-        { id: 1, homeTeam: { name: 'Mexique', shortName: 'MEX', tla: 'MEX' }, awayTeam: { name: 'Afrique du Sud', shortName: 'RSA', tla: 'RSA' }, score: { fullTime: { home: 2, away: 1 } }, status: 'FINISHED', utcDate: '2026-06-11T19:00:00Z', stage: 'GROUP_STAGE', group: 'Groupe A', venue: 'Estadio Azteca' },
-        { id: 2, homeTeam: { name: 'Corée du Sud', shortName: 'KOR', tla: 'KOR' }, awayTeam: { name: 'Tchéquie', shortName: 'CZE', tla: 'CZE' }, score: { fullTime: { home: 0, away: 0 } }, status: 'FINISHED', utcDate: '2026-06-11T22:00:00Z', stage: 'GROUP_STAGE', group: 'Groupe A', venue: 'Estadio BBVA' },
+        { id: 1, homeTeam: { name: 'Mexique', shortName: 'MEX', tla: 'MEX' }, awayTeam: { name: 'Afrique du Sud', shortName: 'RSA', tla: 'RSA' }, score: { fullTime: { home: null, away: null } }, status: 'SCHEDULED', utcDate: '2026-06-11T19:00:00Z', stage: 'GROUP_STAGE', group: 'Groupe A', venue: 'Estadio Azteca' },
+        { id: 2, homeTeam: { name: 'Corée du Sud', shortName: 'KOR', tla: 'KOR' }, awayTeam: { name: 'Tchéquie', shortName: 'CZE', tla: 'CZE' }, score: { fullTime: { home: null, away: null } }, status: 'SCHEDULED', utcDate: '2026-06-11T22:00:00Z', stage: 'GROUP_STAGE', group: 'Groupe A', venue: 'Estadio BBVA' },
         { id: 3, homeTeam: { name: 'USA', shortName: 'USA', tla: 'USA' }, awayTeam: { name: 'Algérie', shortName: 'ALG', tla: 'ALG' }, score: { fullTime: { home: null, away: null } }, status: 'SCHEDULED', utcDate: '2026-06-12T19:00:00Z', stage: 'GROUP_STAGE', group: 'Groupe B', venue: 'AT&T Stadium' },
         { id: 4, homeTeam: { name: 'Panama', shortName: 'PAN', tla: 'PAN' }, awayTeam: { name: 'Maroc', shortName: 'MAR', tla: 'MAR' }, score: { fullTime: { home: null, away: null } }, status: 'SCHEDULED', utcDate: '2026-06-12T22:00:00Z', stage: 'GROUP_STAGE', group: 'Groupe B', venue: 'NRG Stadium' },
         { id: 5, homeTeam: { name: 'Argentine', shortName: 'ARG', tla: 'ARG' }, awayTeam: { name: 'Croatie', shortName: 'CRO', tla: 'CRO' }, score: { fullTime: { home: null, away: null } }, status: 'SCHEDULED', utcDate: '2026-06-13T19:00:00Z', stage: 'GROUP_STAGE', group: 'Groupe C', venue: 'Hard Rock Stadium' },
         { id: 6, homeTeam: { name: 'France', shortName: 'FRA', tla: 'FRA' }, awayTeam: { name: 'Équateur', shortName: 'ECU', tla: 'ECU' }, score: { fullTime: { home: null, away: null } }, status: 'SCHEDULED', utcDate: '2026-06-13T22:00:00Z', stage: 'GROUP_STAGE', group: 'Groupe C', venue: 'Mercedes-Benz Stadium' },
         { id: 7, homeTeam: { name: 'Brésil', shortName: 'BRA', tla: 'BRA' }, awayTeam: { name: 'Écosse', shortName: 'SCO', tla: 'SCO' }, score: { fullTime: { home: null, away: null } }, status: 'SCHEDULED', utcDate: '2026-06-14T19:00:00Z', stage: 'GROUP_STAGE', group: 'Groupe D', venue: 'MetLife Stadium' },
         { id: 8, homeTeam: { name: 'Angleterre', shortName: 'ENG', tla: 'ENG' }, awayTeam: { name: 'Arabie Saoudite', shortName: 'KSA', tla: 'KSA' }, score: { fullTime: { home: null, away: null } }, status: 'SCHEDULED', utcDate: '2026-06-14T22:00:00Z', stage: 'GROUP_STAGE', group: 'Groupe D', venue: 'Gillette Stadium' },
+      ],
+      // CdM 2022 — données historiques réelles (fallback hors période)
+      2022: [
+        { id: 101, homeTeam: { name: 'Argentine', shortName: 'ARG', tla: 'ARG' }, awayTeam: { name: 'France', shortName: 'FRA', tla: 'FRA' }, score: { fullTime: { home: 3, away: 3 } }, status: 'FINISHED', utcDate: '2022-12-18T15:00:00Z', stage: 'FINAL', venue: 'Lusail Stadium' },
+        { id: 102, homeTeam: { name: 'Argentine', shortName: 'ARG', tla: 'ARG' }, awayTeam: { name: 'Croatie', shortName: 'CRO', tla: 'CRO' }, score: { fullTime: { home: 3, away: 0 } }, status: 'FINISHED', utcDate: '2022-12-13T19:00:00Z', stage: 'SEMI_FINALS', venue: 'Lusail Stadium' },
+        { id: 103, homeTeam: { name: 'France', shortName: 'FRA', tla: 'FRA' }, awayTeam: { name: 'Maroc', shortName: 'MAR', tla: 'MAR' }, score: { fullTime: { home: 2, away: 0 } }, status: 'FINISHED', utcDate: '2022-12-14T19:00:00Z', stage: 'SEMI_FINALS', venue: 'Al Bayt Stadium' },
+        { id: 104, homeTeam: { name: 'Pays-Bas', shortName: 'NED', tla: 'NED' }, awayTeam: { name: 'Argentine', shortName: 'ARG', tla: 'ARG' }, score: { fullTime: { home: 2, away: 2 } }, status: 'FINISHED', utcDate: '2022-12-09T19:00:00Z', stage: 'QUARTER_FINALS', venue: 'Lusail Stadium' },
+        { id: 105, homeTeam: { name: 'Arabie Saoudite', shortName: 'KSA', tla: 'KSA' }, awayTeam: { name: 'Argentine', shortName: 'ARG', tla: 'ARG' }, score: { fullTime: { home: 2, away: 1 } }, status: 'FINISHED', utcDate: '2022-11-22T10:00:00Z', stage: 'GROUP_STAGE', group: 'Groupe C', venue: 'Lusail Stadium' },
+        { id: 106, homeTeam: { name: 'Japon', shortName: 'JPN', tla: 'JPN' }, awayTeam: { name: 'Allemagne', shortName: 'GER', tla: 'GER' }, score: { fullTime: { home: 2, away: 1 } }, status: 'FINISHED', utcDate: '2022-11-23T13:00:00Z', stage: 'GROUP_STAGE', group: 'Groupe E', venue: 'Khalifa International Stadium' },
+        { id: 107, homeTeam: { name: 'Maroc', shortName: 'MAR', tla: 'MAR' }, awayTeam: { name: 'Belgique', shortName: 'BEL', tla: 'BEL' }, score: { fullTime: { home: 2, away: 0 } }, status: 'FINISHED', utcDate: '2022-11-27T13:00:00Z', stage: 'GROUP_STAGE', group: 'Groupe F', venue: 'Al Thumama Stadium' },
+        { id: 108, homeTeam: { name: 'Corée du Sud', shortName: 'KOR', tla: 'KOR' }, awayTeam: { name: 'Portugal', shortName: 'POR', tla: 'POR' }, score: { fullTime: { home: 2, away: 1 } }, status: 'FINISHED', utcDate: '2022-12-02T15:00:00Z', stage: 'GROUP_STAGE', group: 'Groupe H', venue: 'Education City Stadium' },
       ],
     };
 
