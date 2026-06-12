@@ -265,7 +265,8 @@
       border-radius: var(--radius-lg);
       padding: var(--space-6);
     }
-    .host-card .flag { font-size: var(--text-2xl); line-height: 1; }
+    .host-card .flag { width: 48px; height: 32px; border-radius: 3px; display: inline-block; vertical-align: middle; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.3); }
+    .host-card .flag img { width: 100%; height: 100%; object-fit: cover; }
     .host-card .name { font-family: var(--font-display); font-weight: 700; font-size: var(--text-lg); margin-top: var(--space-3); }
     .host-card .cities { font-size: var(--text-sm); color: var(--color-text-muted); margin-top: var(--space-2); }
 
@@ -284,7 +285,8 @@
       transition: transform 0.2s, border-color 0.2s;
     }
     .team-chip:hover { transform: translateY(-2px); border-color: var(--color-primary); }
-    .team-chip .flag { font-size: 1.25rem; }
+    .team-chip .flag { width: 28px; height: 20px; border-radius: 2px; display: inline-block; vertical-align: middle; overflow: hidden; flex-shrink: 0; }
+    .team-chip .flag img { width: 100%; height: 100%; object-fit: cover; }
     .team-chip .conf { font-size: var(--text-xs); color: var(--color-text-faint); margin-left: auto; }
     .team-chip .group-badge { font-size: var(--text-xs); background: var(--color-gold); color: #111; padding: 2px 6px; border-radius: var(--radius-sm); font-weight: 700; margin-left: var(--space-2); }
 
@@ -322,7 +324,8 @@
     .match-status .status-dot.live { background: var(--color-live); animation: pulse 1.5s ease-in-out infinite; }
     .match-teams { display: flex; align-items: center; justify-content: center; gap: var(--space-4); flex-wrap: wrap; }
     .match-team { display: flex; flex-direction: column; align-items: center; gap: var(--space-2); flex: 1; min-width: 120px; }
-    .match-team .flag { font-size: 2.5rem; }
+    .match-team .flag { width: 56px; height: 40px; border-radius: 4px; display: inline-block; vertical-align: middle; overflow: hidden; box-shadow: 0 2px 6px rgba(0,0,0,0.3); }
+    .match-team .flag img { width: 100%; height: 100%; object-fit: cover; }
     .match-team .name { font-weight: 600; font-size: var(--text-sm); text-align: center; }
     .match-score { font-family: var(--font-display); font-size: var(--text-2xl); font-weight: 800; color: var(--color-primary); min-width: 80px; text-align: center; }
     .match-meta { text-align: center; margin-top: var(--space-4); font-size: var(--text-xs); color: var(--color-text-muted); }
@@ -440,17 +443,17 @@
       <h3 style="font-size: var(--text-lg); margin-bottom: var(--space-4); color: var(--color-text-muted);">Pays organisateurs</h3>
       <div class="grid grid-3 mb-4" id="hosts-grid">
         <article class="host-card">
-          <div class="flag" aria-hidden="true">🇺🇸</div>
+          <div class="flag" aria-hidden="true"><img src="https://flagcdn.com/w80/us.svg" alt="Drapeau États-Unis" loading="lazy"></div>
           <div class="name">États-Unis</div>
           <div class="cities">11 villes : Los Angeles, New York/New Jersey, Dallas, Atlanta, Seattle, Boston, Houston, Kansas City, Miami, Philadelphia, San Francisco Bay Area</div>
         </article>
         <article class="host-card">
-          <div class="flag" aria-hidden="true">🇲🇽</div>
+          <div class="flag" aria-hidden="true"><img src="https://flagcdn.com/w80/mx.svg" alt="Drapeau Mexique" loading="lazy"></div>
           <div class="name">Mexique</div>
           <div class="cities">3 villes : Mexico City, Guadalajara, Monterrey</div>
         </article>
         <article class="host-card">
-          <div class="flag" aria-hidden="true">🇨🇦</div>
+          <div class="flag" aria-hidden="true"><img src="https://flagcdn.com/w80/ca.svg" alt="Drapeau Canada" loading="lazy"></div>
           <div class="name">Canada</div>
           <div class="cities">2 villes : Toronto, Vancouver</div>
         </article>
@@ -586,11 +589,11 @@
     const WC_COMPETITION_ID = 2000;
 
     const WORLD_CUPS = [
-      { year: 2026, start: '2026-06-11', end: '2026-07-19', hosts: ['USA','MEX','CAN'], hostNames: '🇺🇸 USA · 🇲🇽 Mexique · 🇨🇦 Canada' },
-      { year: 2030, start: '2030-06-01', end: '2030-07-15', hosts: ['ESP','POR','MAR'], hostNames: '🇪🇸 Espagne · 🇵🇹 Portugal · 🇲🇦 Maroc' },
-      { year: 2034, start: '2034-06-01', end: '2034-07-15', hosts: ['SAU'], hostNames: '🇸🇦 Arabie Saoudite' },
-      { year: 2038, start: '2038-06-01', end: '2038-07-15', hosts: ['TBD'], hostNames: '🌍 À confirmer' },
-      { year: 2042, start: '2042-06-01', end: '2042-07-15', hosts: ['TBD'], hostNames: '🌍 À confirmer' },
+      { year: 2026, start: '2026-06-11', end: '2026-07-19', hosts: ['USA','MEX','CAN'], hostNames: 'USA · Mexique · Canada' },
+      { year: 2030, start: '2030-06-01', end: '2030-07-15', hosts: ['ESP','POR','MAR'], hostNames: 'Espagne · Portugal · Maroc' },
+      { year: 2034, start: '2034-06-01', end: '2034-07-15', hosts: ['SAU'], hostNames: 'Arabie Saoudite' },
+      { year: 2038, start: '2038-06-01', end: '2038-07-15', hosts: ['TBD'], hostNames: 'A confirmer' },
+      { year: 2042, start: '2042-06-01', end: '2042-07-15', hosts: ['TBD'], hostNames: 'A confirmer' },
     ];
 
     const STADIUM_TIMEZONES = {
@@ -619,55 +622,55 @@
 
     const STATIC_FALLBACK_TEAMS = {
       2026: [
-        { name: 'Australie', flag: '🇦🇺', confederation: 'AFC', group: 'Groupe F' },
-        { name: 'Japon', flag: '🇯🇵', confederation: 'AFC', group: 'Groupe E' },
-        { name: 'Corée du Sud', flag: '🇰🇷', confederation: 'AFC', group: 'Groupe A' },
-        { name: 'Arabie Saoudite', flag: '🇸🇦', confederation: 'AFC', group: 'Groupe D' },
-        { name: 'Qatar', flag: '🇶🇦', confederation: 'AFC', group: 'Groupe G' },
-        { name: 'Jordanie', flag: '🇯🇴', confederation: 'AFC', group: 'Groupe H' },
-        { name: 'Ouzbékistan', flag: '🇺🇿', confederation: 'AFC', group: 'Groupe C' },
-        { name: 'Irak', flag: '🇮🇶', confederation: 'AFC', group: 'Groupe B' },
-        { name: 'Algérie', flag: '🇩🇿', confederation: 'CAF', group: 'Groupe B' },
-        { name: 'Cap-Vert', flag: '🇨🇻', confederation: 'CAF', group: 'Groupe F' },
-        { name: "Côte d'Ivoire", flag: '🇨🇮', confederation: 'CAF', group: 'Groupe G' },
-        { name: 'Égypte', flag: '🇪🇬', confederation: 'CAF', group: 'Groupe C' },
-        { name: 'Ghana', flag: '🇬🇭', confederation: 'CAF', group: 'Groupe H' },
-        { name: 'Maroc', flag: '🇲🇦', confederation: 'CAF', group: 'Groupe D' },
-        { name: 'Sénégal', flag: '🇸🇳', confederation: 'CAF', group: 'Groupe E' },
-        { name: 'Afrique du Sud', flag: '🇿🇦', confederation: 'CAF', group: 'Groupe A' },
-        { name: 'Tunisie', flag: '🇹🇳', confederation: 'CAF', group: 'Groupe F' },
-        { name: 'RD Congo', flag: '🇨🇩', confederation: 'CAF', group: 'Groupe G' },
-        { name: 'Canada', flag: '🇨🇦', confederation: 'CONCACAF', group: 'Groupe A' },
-        { name: 'États-Unis', flag: '🇺🇸', confederation: 'CONCACAF', group: 'Groupe B' },
-        { name: 'Mexique', flag: '🇲🇽', confederation: 'CONCACAF', group: 'Groupe A' },
-        { name: 'Curaçao', flag: '🇨🇼', confederation: 'CONCACAF', group: 'Groupe C' },
-        { name: 'Haïti', flag: '🇭🇹', confederation: 'CONCACAF', group: 'Groupe D' },
-        { name: 'Panama', flag: '🇵🇦', confederation: 'CONCACAF', group: 'Groupe E' },
-        { name: 'Argentine', flag: '🇦🇷', confederation: 'CONMEBOL', group: 'Groupe C' },
-        { name: 'Brésil', flag: '🇧🇷', confederation: 'CONMEBOL', group: 'Groupe D' },
-        { name: 'Colombie', flag: '🇨🇴', confederation: 'CONMEBOL', group: 'Groupe H' },
-        { name: 'Équateur', flag: '🇪🇨', confederation: 'CONMEBOL', group: 'Groupe E' },
-        { name: 'Paraguay', flag: '🇵🇾', confederation: 'CONMEBOL', group: 'Groupe F' },
-        { name: 'Uruguay', flag: '🇺🇾', confederation: 'CONMEBOL', group: 'Groupe G' },
-        { name: 'Allemagne', flag: '🇩🇪', confederation: 'UEFA', group: 'Groupe H' },
-        { name: 'Autriche', flag: '🇦🇹', confederation: 'UEFA', group: 'Groupe A' },
-        { name: 'Belgique', flag: '🇧🇪', confederation: 'UEFA', group: 'Groupe B' },
-        { name: 'Bosnie-Herzégovine', flag: '🇧🇦', confederation: 'UEFA', group: 'Groupe C' },
-        { name: 'Croatie', flag: '🇭🇷', confederation: 'UEFA', group: 'Groupe D' },
-        { name: 'Tchéquie', flag: '🇨🇿', confederation: 'UEFA', group: 'Groupe E' },
-        { name: 'Angleterre', flag: '🏴󠁧󠁢󠁥󠁮󠁧󠁿', confederation: 'UEFA', group: 'Groupe F' },
-        { name: 'France', flag: '🇫🇷', confederation: 'UEFA', group: 'Groupe G' },
-        { name: 'Pays-Bas', flag: '🇳🇱', confederation: 'UEFA', group: 'Groupe H' },
-        { name: 'Norvège', flag: '🇳🇴', confederation: 'UEFA', group: 'Groupe A' },
-        { name: 'Portugal', flag: '🇵🇹', confederation: 'UEFA', group: 'Groupe B' },
-        { name: 'Écosse', flag: '🏴󠁧󠁢󠁳󠁣󠁴󠁿', confederation: 'UEFA', group: 'Groupe C' },
-        { name: 'Espagne', flag: '🇪🇸', confederation: 'UEFA', group: 'Groupe D' },
-        { name: 'Suède', flag: '🇸🇪', confederation: 'UEFA', group: 'Groupe E' },
-        { name: 'Turquie', flag: '🇹🇷', confederation: 'UEFA', group: 'Groupe F' },
-        { name: 'Suisse', flag: '🇨🇭', confederation: 'UEFA', group: 'Groupe G' },
-        { name: 'Nouvelle-Zélande', flag: '🇳🇿', confederation: 'OFC', group: 'Groupe H' },
-        { name: 'Philippines', flag: '🇵🇭', confederation: 'AFC', group: 'Groupe A' },
-        { name: 'Venezuela', flag: '🇻🇪', confederation: 'CONMEBOL', group: 'Groupe B' },
+        { name: 'Australie', code: 'au', confederation: 'AFC', group: 'Groupe F' },
+        { name: 'Japon', code: 'jp', confederation: 'AFC', group: 'Groupe E' },
+        { name: 'Corée du Sud', code: 'kr', confederation: 'AFC', group: 'Groupe A' },
+        { name: 'Arabie Saoudite', code: 'sa', confederation: 'AFC', group: 'Groupe D' },
+        { name: 'Qatar', code: 'qa', confederation: 'AFC', group: 'Groupe G' },
+        { name: 'Jordanie', code: 'jo', confederation: 'AFC', group: 'Groupe H' },
+        { name: 'Ouzbékistan', code: 'uz', confederation: 'AFC', group: 'Groupe C' },
+        { name: 'Irak', code: 'iq', confederation: 'AFC', group: 'Groupe B' },
+        { name: 'Algérie', code: 'dz', confederation: 'CAF', group: 'Groupe B' },
+        { name: 'Cap-Vert', code: 'cv', confederation: 'CAF', group: 'Groupe F' },
+        { name: "Côte d'Ivoire", code: 'ci', confederation: 'CAF', group: 'Groupe G' },
+        { name: 'Égypte', code: 'eg', confederation: 'CAF', group: 'Groupe C' },
+        { name: 'Ghana', code: 'gh', confederation: 'CAF', group: 'Groupe H' },
+        { name: 'Maroc', code: 'ma', confederation: 'CAF', group: 'Groupe D' },
+        { name: 'Sénégal', code: 'sn', confederation: 'CAF', group: 'Groupe E' },
+        { name: 'Afrique du Sud', code: 'za', confederation: 'CAF', group: 'Groupe A' },
+        { name: 'Tunisie', code: 'tn', confederation: 'CAF', group: 'Groupe F' },
+        { name: 'RD Congo', code: 'cd', confederation: 'CAF', group: 'Groupe G' },
+        { name: 'Canada', code: 'ca', confederation: 'CONCACAF', group: 'Groupe A' },
+        { name: 'États-Unis', code: 'us', confederation: 'CONCACAF', group: 'Groupe B' },
+        { name: 'Mexique', code: 'mx', confederation: 'CONCACAF', group: 'Groupe A' },
+        { name: 'Curaçao', code: 'cw', confederation: 'CONCACAF', group: 'Groupe C' },
+        { name: 'Haïti', code: 'ht', confederation: 'CONCACAF', group: 'Groupe D' },
+        { name: 'Panama', code: 'pa', confederation: 'CONCACAF', group: 'Groupe E' },
+        { name: 'Argentine', code: 'ar', confederation: 'CONMEBOL', group: 'Groupe C' },
+        { name: 'Brésil', code: 'br', confederation: 'CONMEBOL', group: 'Groupe D' },
+        { name: 'Colombie', code: 'co', confederation: 'CONMEBOL', group: 'Groupe H' },
+        { name: 'Équateur', code: 'ec', confederation: 'CONMEBOL', group: 'Groupe E' },
+        { name: 'Paraguay', code: 'py', confederation: 'CONMEBOL', group: 'Groupe F' },
+        { name: 'Uruguay', code: 'uy', confederation: 'CONMEBOL', group: 'Groupe G' },
+        { name: 'Allemagne', code: 'de', confederation: 'UEFA', group: 'Groupe H' },
+        { name: 'Autriche', code: 'at', confederation: 'UEFA', group: 'Groupe A' },
+        { name: 'Belgique', code: 'be', confederation: 'UEFA', group: 'Groupe B' },
+        { name: 'Bosnie-Herzégovine', code: 'ba', confederation: 'UEFA', group: 'Groupe C' },
+        { name: 'Croatie', code: 'hr', confederation: 'UEFA', group: 'Groupe D' },
+        { name: 'Tchéquie', code: 'cz', confederation: 'UEFA', group: 'Groupe E' },
+        { name: 'Angleterre', code: 'gb-eng', confederation: 'UEFA', group: 'Groupe F' },
+        { name: 'France', code: 'fr', confederation: 'UEFA', group: 'Groupe G' },
+        { name: 'Pays-Bas', code: 'nl', confederation: 'UEFA', group: 'Groupe H' },
+        { name: 'Norvège', code: 'no', confederation: 'UEFA', group: 'Groupe A' },
+        { name: 'Portugal', code: 'pt', confederation: 'UEFA', group: 'Groupe B' },
+        { name: 'Écosse', code: 'gb-sct', confederation: 'UEFA', group: 'Groupe C' },
+        { name: 'Espagne', code: 'es', confederation: 'UEFA', group: 'Groupe D' },
+        { name: 'Suède', code: 'se', confederation: 'UEFA', group: 'Groupe E' },
+        { name: 'Turquie', code: 'tr', confederation: 'UEFA', group: 'Groupe F' },
+        { name: 'Suisse', code: 'ch', confederation: 'UEFA', group: 'Groupe G' },
+        { name: 'Nouvelle-Zélande', code: 'nz', confederation: 'OFC', group: 'Groupe H' },
+        { name: 'Philippines', code: 'ph', confederation: 'AFC', group: 'Groupe A' },
+        { name: 'Venezuela', code: 've', confederation: 'CONMEBOL', group: 'Groupe B' },
       ],
     };
 
@@ -763,7 +766,7 @@
         if (existingIndex === -1) {
           WORLD_CUPS.push({
             year: seasonYear, start: season.startDate, end: season.endDate,
-            hosts: ['TBD'], hostNames: '🌍 Détecté automatiquement', apiSeasonId: season.id
+            hosts: ['TBD'], hostNames: 'Détecté automatiquement', apiSeasonId: season.id
           });
           WORLD_CUPS.sort((a, b) => a.year - b.year);
         } else {
@@ -781,24 +784,47 @@
       const container = document.getElementById('teams-grid');
       if (!container) return;
       const teams = STATIC_FALLBACK_TEAMS[year] || STATIC_FALLBACK_TEAMS[2026] || [];
-      container.innerHTML = teams.map(t => {
-        const groupBadge = t.group ? `<span class="group-badge">${t.group}</span>` : '';
-        return `<div class="team-chip" role="listitem"><span class="flag" aria-hidden="true">${t.flag}</span><span>${t.name}</span>${groupBadge}<span class="conf">${t.confederation}</span></div>`;
+
+      // Grouper par groupe puis trier alphabétiquement au sein de chaque groupe
+      const groups = {};
+      teams.forEach(t => {
+        const g = t.group || 'Sans groupe';
+        if (!groups[g]) groups[g] = [];
+        groups[g].push(t);
+      });
+      Object.keys(groups).forEach(g => groups[g].sort((a, b) => a.name.localeCompare(b.name, 'fr')));
+      const groupOrder = Object.keys(groups).sort((a, b) => a.localeCompare(b, 'fr'));
+
+      container.innerHTML = groupOrder.map(g => {
+        const groupId = g.replace(/\s+/g, '-').toLowerCase();
+        const chips = groups[g].map(t =>
+          `<div class="team-chip" role="listitem">
+             <span class="flag" aria-hidden="true"><img src="https://flagcdn.com/w40/${t.code}.svg" alt="${t.name}" loading="lazy"></span>
+             <span>${t.name}</span>
+             <span class="conf">${t.confederation}</span>
+           </div>`
+        ).join('');
+        return `
+          <div class="group-section" role="group" aria-label="${g}">
+            <h4 style="font-family: var(--font-display); font-size: var(--text-sm); color: var(--color-primary); margin: var(--space-4) 0 var(--space-2); text-transform: uppercase; letter-spacing: 0.05em;">${g}</h4>
+            <div class="grid grid-4">${chips}</div>
+          </div>`;
       }).join('');
     }
 
     function flagForTeam(name) {
       const map = {};
       const teams = STATIC_FALLBACK_TEAMS[2026] || [];
-      teams.forEach(t => map[t.name] = t.flag);
+      teams.forEach(t => map[t.name] = t.code);
       const extra = {
-        'Mexique': '🇲🇽', 'Afrique du Sud': '🇿🇦', 'Corée du Sud': '🇰🇷', 'Tchéquie': '🇨🇿',
-        'USA': '🇺🇸', 'Algérie': '🇩🇿', 'Panama': '🇵🇦', 'Maroc': '🇲🇦',
-        'Argentine': '🇦🇷', 'Croatie': '🇭🇷', 'France': '🇫🇷', 'Équateur': '🇪🇨',
-        'Brésil': '🇧🇷', 'Écosse': '🏴󠁧󠁢󠁳󠁣󠁴󠁿', 'Angleterre': '🏴󠁧󠁢󠁥󠁮󠁧󠁿', 'Arabie Saoudite': '🇸🇦',
+        'Mexique': 'mx', 'Afrique du Sud': 'za', 'Corée du Sud': 'kr', 'Tchéquie': 'cz',
+        'USA': 'us', 'Algérie': 'dz', 'Panama': 'pa', 'Maroc': 'ma',
+        'Argentine': 'ar', 'Croatie': 'hr', 'France': 'fr', 'Équateur': 'ec',
+        'Brésil': 'br', 'Écosse': 'gb-sct', 'Angleterre': 'gb-eng', 'Arabie Saoudite': 'sa',
       };
       Object.assign(map, extra);
-      return map[name] || '🏳️';
+      const code = map[name] || 'xx';
+      return `<img src="https://flagcdn.com/w40/${code}.svg" alt="${name}" loading="lazy">`;
     }
 
     function renderMatches(matches, wc) {
