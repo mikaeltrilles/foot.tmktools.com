@@ -1028,8 +1028,9 @@
       filtered.sort((a, b) => new Date(a.utcDate) - new Date(b.utcDate));
 
       container.innerHTML = filtered.map(m => {
-        let homeScore = (m.score && m.score.fullTime) ? m.score.fullTime.home : '-';
-        let awayScore = (m.score && m.score.fullTime) ? m.score.fullTime.away : '-';
+        // Scores : fullTime (live/final), halfTime, ou directement score.*
+        let homeScore = (m.score && m.score.fullTime && m.score.fullTime.home !== null && m.score.fullTime.home !== undefined) ? m.score.fullTime.home : (m.score && m.score.halfTime && m.score.halfTime.home !== null && m.score.halfTime.home !== undefined ? m.score.halfTime.home : '-');
+        let awayScore = (m.score && m.score.fullTime && m.score.fullTime.away !== null && m.score.fullTime.away !== undefined) ? m.score.fullTime.away : (m.score && m.score.halfTime && m.score.halfTime.away !== null && m.score.halfTime.away !== undefined ? m.score.halfTime.away : '-');
         if (homeScore === null || homeScore === undefined) homeScore = '-';
         if (awayScore === null || awayScore === undefined) awayScore = '-';
         const nowForLive = new Date();
