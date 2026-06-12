@@ -850,6 +850,7 @@
 
     let previousScores = new Map();
     let lastRefreshTime = new Map();
+    let chartMatches = [];
 
     function toParisTime(utcString) {
       try {
@@ -1157,12 +1158,28 @@
       return getComputedStyle(document.documentElement).getPropertyValue(name).trim() || '#f2f7f2';
     }
 
+    function syncChartDefaults() {
+      if (!window.Chart) return;
+      const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+      Chart.defaults.color = getCssVar('--color-text');
+      Chart.defaults.borderColor = isLight ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.10)';
+    }
+
     // Config globale Chart.js pour mode sombre
     if (window.Chart) {
-      Chart.defaults.color = getCssVar('--color-text');
-      Chart.defaults.borderColor = 'rgba(255,255,255,0.1)';
+      syncChartDefaults();
       Chart.defaults.font.family = "'Inter', sans-serif";
     }
+
+    function initCharts() {
+      syncChartDefaults();
+      initGoalsChart(chartMatches);
+      initPalmaresChart();
+    }
+
+    // Observer le changement de thème pour recréer les charts avec les bonnes couleurs
+    const themeObserver = new MutationObserver(() => { initCharts(); });
+    themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
 
     function initGoalsChart(matches) {
       const ctx = document.getElementById('goals-chart');
@@ -1209,12 +1226,10 @@
           },
           scales: {
             x: {
-              grid: { color: 'rgba(255,255,255,0.10)' },
-              ticks: { color: getCssVar('--color-text'), stepSize: 1, callback: v => Number.isInteger(v) ? v : '' }
+              ticks: { stepSize: 1, callback: v => Number.isInteger(v) ? v : '' }
             },
             y: {
-              grid: { display: false },
-              ticks: { color: getCssVar('--color-text') }
+              grid: { display: false }
             }
           }
         }
@@ -1250,12 +1265,10 @@
           },
           scales: {
             x: {
-              grid: { display: false },
-              ticks: { color: getCssVar('--color-text') }
+              grid: { display: false }
             },
             y: {
-              grid: { color: 'rgba(255,255,255,0.10)' },
-              ticks: { color: getCssVar('--color-text'), stepSize: 1 }
+              ticks: { stepSize: 1 }
             }
           }
         }
@@ -1275,8 +1288,9 @@
       if (!API_KEY) {
         const now = Date.now();
         fallback.forEach(m => lastRefreshTime.set(m.id, now));
+        chartMatches = fallback;
         renderMatches(fallback, wc);
-        initGoalsChart(fallback);
+        initCharts();
         updateLastRefresh(true);
         return;
       }
@@ -1289,12 +1303,14 @@
         const data = await res.json();
         const now = Date.now();
         data.matches.forEach(m => lastRefreshTime.set(m.id, now));
+        chartMatches = data.matches;
         renderMatches(data.matches, wc);
-        initGoalsChart(data.matches);
+        initCharts();
         updateLastRefresh(false);
       } catch (e) {
+        chartMatches = fallback;
         renderMatches(fallback, wc);
-        initGoalsChart(fallback);
+        initCharts();
         updateLastRefresh(true);
       }
     }
@@ -1425,14 +1441,12 @@
       renderNextWorldCups();
       updateCountdowns();
       await fetchAndRenderMatches(currentWC);
-      initGoalsChart(STATIC_FALLBACK_MATCHES[currentWC.year] || STATIC_FALLBACK_MATCHES[2026]);
-      initPalmaresChart();
       initTabs();
       initTheme();
       initScrollReveal();
       updateFooterTimes();
 
-      const intervalMs = currentWC.isLive ? 60000 : currentWC.isSoon ? 300000 : 3600000;
+      const intervalMs = currentWC.isLive ? 30000 : currentWC.isSoon ? 300000 : 3600000;
       if (refreshInterval) clearInterval(refreshInterval);
       refreshInterval = setInterval(async () => {
         currentWC = await autoDiscoverWorldCup();
