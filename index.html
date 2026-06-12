@@ -326,7 +326,7 @@
     .match-team .name { font-weight: 600; font-size: var(--text-sm); text-align: center; }
     .match-score { font-family: var(--font-display); font-size: var(--text-2xl); font-weight: 800; color: var(--color-primary); min-width: 80px; text-align: center; }
     .match-meta { text-align: center; margin-top: var(--space-4); font-size: var(--text-xs); color: var(--color-text-muted); }
-    .match-meta .time-local { color: var(--color-text); font-weight: 500; }
+    .match-meta .time-paris { color: var(--color-text); font-weight: 500; }
 
     /* Skeleton */
     .skeleton {
@@ -860,7 +860,7 @@
               </div>
             </div>
             <div class="match-meta">
-              📅 ${dateStr} · 🕐 <span class="time-local">${localTime} (local)</span> · ${parisTime} (Paris) · 📍 ${venue}
+              📅 ${dateStr} · 🕐 ${localTime} (local) · <span class="time-paris">${parisTime} (Paris)</span> · 📍 ${venue}
             </div>
           </article>
         `;
