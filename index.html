@@ -388,6 +388,9 @@
     .match-meta-row:first-child { margin-top: 0; }
     .match-meta-row:last-child { margin-bottom: 0; }
     .refresh-indicator { display: block; margin-top: var(--space-2); font-size: 10px; color: var(--color-text-muted); opacity: 0.8; letter-spacing: 0.02em; }
+    .palmares-legend { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--space-3); margin-top: var(--space-4); font-size: var(--text-xs); color: var(--color-text); }
+    .palmares-legend .legend-item { display: flex; align-items: center; gap: var(--space-1); }
+    .palmares-legend .legend-dot { width: 10px; height: 10px; border-radius: 2px; }
 
     /* Skeleton */
     .skeleton {
@@ -611,6 +614,9 @@
       <h3 style="font-size: var(--text-lg); margin-top: var(--space-12); margin-bottom: var(--space-4); color: var(--color-text-muted);">Titres par confédération</h3>
       <div class="chart-container">
         <canvas id="palmares-chart" aria-label="Graphique des titres par confédération"></canvas>
+      </div>
+      <div id="palmares-legend" class="palmares-legend" aria-label="Légende des confédérations">
+        <!-- Généré par JS -->
       </div>
     </section>
 
@@ -1204,7 +1210,7 @@
           scales: {
             x: {
               grid: { color: 'rgba(255,255,255,0.10)' },
-              ticks: { color: getCssVar('--color-text') }
+              ticks: { color: getCssVar('--color-text'), stepSize: 1, callback: v => Number.isInteger(v) ? v : '' }
             },
             y: {
               grid: { display: false },
@@ -1254,6 +1260,13 @@
           }
         }
       });
+      // Légende HTML personnalisée
+      const legendEl = document.getElementById('palmares-legend');
+      if (legendEl) {
+        legendEl.innerHTML = labels.map((lbl, i) =>
+          `<div class="legend-item"><span class="legend-dot" style="background:${colors[i]}"></span><span>${lbl}</span></div>`
+        ).join('');
+      }
     }
 
     async function fetchAndRenderMatches(wc) {
