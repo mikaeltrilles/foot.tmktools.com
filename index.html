@@ -356,6 +356,9 @@
     .match-score { font-family: var(--font-display); font-size: var(--text-2xl); font-weight: 800; color: var(--color-primary); min-width: 80px; text-align: center; }
     .match-meta { text-align: center; margin-top: var(--space-4); font-size: var(--text-xs); color: var(--color-text-muted); }
     .match-meta .time-paris { color: var(--color-text); font-weight: 500; }
+    .match-meta-row { display: block; margin: var(--space-1) 0; }
+    .match-meta-row:first-child { margin-top: 0; }
+    .match-meta-row:last-child { margin-bottom: 0; }
 
     /* Skeleton */
     .skeleton {
@@ -639,6 +642,25 @@
       'Estadio Akron': 'America/Mexico_City',
       'BMO Field': 'America/Toronto',
       'BC Place': 'America/Vancouver',
+    };
+
+    const STADIUM_CITIES = {
+      'MetLife Stadium': 'East Rutherford, NJ',
+      'AT&T Stadium': 'Arlington, TX',
+      'Mercedes-Benz Stadium': 'Atlanta, GA',
+      'Arrowhead Stadium': 'Kansas City, MO',
+      'NRG Stadium': 'Houston, TX',
+      'Levi\'s Stadium': 'Santa Clara, CA',
+      'SoFi Stadium': 'Inglewood, CA',
+      'Lincoln Financial Field': 'Philadelphia, PA',
+      'Lumen Field': 'Seattle, WA',
+      'Gillette Stadium': 'Foxborough, MA',
+      'Hard Rock Stadium': 'Miami Gardens, FL',
+      'Estadio Azteca': 'Mexico City',
+      'Estadio BBVA': 'Guadalupe, NL',
+      'Estadio Akron': 'Zapopan',
+      'BMO Field': 'Toronto',
+      'BC Place': 'Vancouver',
     };
 
     let currentWC = null;
@@ -952,13 +974,16 @@
       let hasLive = false;
 
       container.innerHTML = filtered.map(m => {
-        const homeScore = (m.score && m.score.fullTime) ? m.score.fullTime.home : '-';
-        const awayScore = (m.score && m.score.fullTime) ? m.score.fullTime.away : '-';
+        let homeScore = (m.score && m.score.fullTime) ? m.score.fullTime.home : '-';
+        let awayScore = (m.score && m.score.fullTime) ? m.score.fullTime.away : '-';
+        if (homeScore === null || homeScore === undefined) homeScore = '-';
+        if (awayScore === null || awayScore === undefined) awayScore = '-';
         const isLive = m.status === 'IN_PLAY' || m.status === 'PAUSED';
         if (isLive) hasLive = true;
         const statusLabel = getStatusLabel(m.status);
         const phase = formatPhase(m.stage);
         const venue = m.venue || 'Stade à confirmer';
+        const city = STADIUM_CITIES[venue] || '';
         const localTime = toLocalTime(m.utcDate, venue);
         const parisTime = toParisTime(m.utcDate);
         const dateObj = new Date(m.utcDate);
@@ -984,14 +1009,16 @@
                 <span class="flag" aria-hidden="true">${flagForTeam(m.homeTeam?.name || 'TBD')}</span>
                 <span class="name">${m.homeTeam?.name || 'TBD'}</span>
               </div>
-              <div class="match-score" aria-label="Score ${homeScore} à ${awayScore}">${homeScore} – ${awayScore}</div>
+              <div class="match-score" aria-label="Score ${homeScore} à ${awayScore}">${(homeScore === '-' && awayScore === '-') ? 'vs' : homeScore + ' – ' + awayScore}</div>
               <div class="match-team">
                 <span class="flag" aria-hidden="true">${flagForTeam(m.awayTeam?.name || 'TBD')}</span>
                 <span class="name">${m.awayTeam?.name || 'TBD'}</span>
               </div>
             </div>
             <div class="match-meta">
-              📅 ${dateStr} · 🕐 ${localTime} (local) · <span class="time-paris">${parisTime} (Paris)</span> · 📍 ${venue}
+              <div class="match-meta-row">📅 ${dateStr}</div>
+              <div class="match-meta-row">🕐 ${localTime} (local) · <span class="time-paris">${parisTime} (Paris)</span></div>
+              <div class="match-meta-row">📍 ${venue}${city ? ' — ' + city : ''}</div>
             </div>
           </article>
         `;
