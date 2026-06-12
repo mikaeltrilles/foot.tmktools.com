@@ -258,6 +258,17 @@
     @media (max-width: 768px) { .grid-4, .grid-6, .grid-8 { grid-template-columns: repeat(2, 1fr); } }
     @media (max-width: 480px) { .grid-2, .grid-3, .grid-4, .grid-6, .grid-8 { grid-template-columns: 1fr; } }
 
+    /* PC/Desktop large screens */
+    @media (min-width: 1200px) {
+      .teams-pc-grid { grid-template-columns: repeat(6, 1fr); }
+      .teams-pc-grid .team-chip { padding: var(--space-3) var(--space-4); }
+      .teams-pc-grid .team-chip .flag { width: 32px; height: 22px; }
+    }
+    @media (min-width: 1600px) {
+      .teams-pc-grid { grid-template-columns: repeat(8, 1fr); }
+      .teams-pc-grid .team-chip { padding: var(--space-3) var(--space-5); }
+    }
+
     /* Equipes */
     .host-card {
       background: var(--color-surface-2);
@@ -622,69 +633,115 @@
 
     const STATIC_FALLBACK_TEAMS = {
       2026: [
-        { name: 'Australie', code: 'au', confederation: 'AFC', group: 'Groupe F' },
-        { name: 'Japon', code: 'jp', confederation: 'AFC', group: 'Groupe E' },
-        { name: 'Corée du Sud', code: 'kr', confederation: 'AFC', group: 'Groupe A' },
-        { name: 'Arabie Saoudite', code: 'sa', confederation: 'AFC', group: 'Groupe D' },
-        { name: 'Qatar', code: 'qa', confederation: 'AFC', group: 'Groupe G' },
-        { name: 'Jordanie', code: 'jo', confederation: 'AFC', group: 'Groupe H' },
-        { name: 'Ouzbékistan', code: 'uz', confederation: 'AFC', group: 'Groupe C' },
-        { name: 'Irak', code: 'iq', confederation: 'AFC', group: 'Groupe B' },
-        { name: 'Algérie', code: 'dz', confederation: 'CAF', group: 'Groupe B' },
-        { name: 'Cap-Vert', code: 'cv', confederation: 'CAF', group: 'Groupe F' },
-        { name: "Côte d'Ivoire", code: 'ci', confederation: 'CAF', group: 'Groupe G' },
-        { name: 'Égypte', code: 'eg', confederation: 'CAF', group: 'Groupe C' },
-        { name: 'Ghana', code: 'gh', confederation: 'CAF', group: 'Groupe H' },
-        { name: 'Maroc', code: 'ma', confederation: 'CAF', group: 'Groupe D' },
-        { name: 'Sénégal', code: 'sn', confederation: 'CAF', group: 'Groupe E' },
-        { name: 'Afrique du Sud', code: 'za', confederation: 'CAF', group: 'Groupe A' },
-        { name: 'Tunisie', code: 'tn', confederation: 'CAF', group: 'Groupe F' },
-        { name: 'RD Congo', code: 'cd', confederation: 'CAF', group: 'Groupe G' },
-        { name: 'Canada', code: 'ca', confederation: 'CONCACAF', group: 'Groupe A' },
-        { name: 'États-Unis', code: 'us', confederation: 'CONCACAF', group: 'Groupe B' },
+        // Groupe A
         { name: 'Mexique', code: 'mx', confederation: 'CONCACAF', group: 'Groupe A' },
-        { name: 'Curaçao', code: 'cw', confederation: 'CONCACAF', group: 'Groupe C' },
-        { name: 'Haïti', code: 'ht', confederation: 'CONCACAF', group: 'Groupe D' },
-        { name: 'Panama', code: 'pa', confederation: 'CONCACAF', group: 'Groupe E' },
-        { name: 'Argentine', code: 'ar', confederation: 'CONMEBOL', group: 'Groupe C' },
-        { name: 'Brésil', code: 'br', confederation: 'CONMEBOL', group: 'Groupe D' },
-        { name: 'Colombie', code: 'co', confederation: 'CONMEBOL', group: 'Groupe H' },
-        { name: 'Équateur', code: 'ec', confederation: 'CONMEBOL', group: 'Groupe E' },
-        { name: 'Paraguay', code: 'py', confederation: 'CONMEBOL', group: 'Groupe F' },
-        { name: 'Uruguay', code: 'uy', confederation: 'CONMEBOL', group: 'Groupe G' },
-        { name: 'Allemagne', code: 'de', confederation: 'UEFA', group: 'Groupe H' },
-        { name: 'Autriche', code: 'at', confederation: 'UEFA', group: 'Groupe A' },
-        { name: 'Belgique', code: 'be', confederation: 'UEFA', group: 'Groupe B' },
-        { name: 'Bosnie-Herzégovine', code: 'ba', confederation: 'UEFA', group: 'Groupe C' },
-        { name: 'Croatie', code: 'hr', confederation: 'UEFA', group: 'Groupe D' },
-        { name: 'Tchéquie', code: 'cz', confederation: 'UEFA', group: 'Groupe E' },
-        { name: 'Angleterre', code: 'gb-eng', confederation: 'UEFA', group: 'Groupe F' },
-        { name: 'France', code: 'fr', confederation: 'UEFA', group: 'Groupe G' },
-        { name: 'Pays-Bas', code: 'nl', confederation: 'UEFA', group: 'Groupe H' },
-        { name: 'Norvège', code: 'no', confederation: 'UEFA', group: 'Groupe A' },
-        { name: 'Portugal', code: 'pt', confederation: 'UEFA', group: 'Groupe B' },
+        { name: 'Afrique du Sud', code: 'za', confederation: 'CAF', group: 'Groupe A' },
+        { name: 'Corée du Sud', code: 'kr', confederation: 'AFC', group: 'Groupe A' },
+        { name: 'Tchéquie', code: 'cz', confederation: 'UEFA', group: 'Groupe A' },
+        // Groupe B
+        { name: 'Canada', code: 'ca', confederation: 'CONCACAF', group: 'Groupe B' },
+        { name: 'Bosnie-Herzégovine', code: 'ba', confederation: 'UEFA', group: 'Groupe B' },
+        { name: 'Qatar', code: 'qa', confederation: 'AFC', group: 'Groupe B' },
+        { name: 'Suisse', code: 'ch', confederation: 'UEFA', group: 'Groupe B' },
+        // Groupe C
+        { name: 'Brésil', code: 'br', confederation: 'CONMEBOL', group: 'Groupe C' },
+        { name: 'Maroc', code: 'ma', confederation: 'CAF', group: 'Groupe C' },
+        { name: 'Haïti', code: 'ht', confederation: 'CONCACAF', group: 'Groupe C' },
         { name: 'Écosse', code: 'gb-sct', confederation: 'UEFA', group: 'Groupe C' },
-        { name: 'Espagne', code: 'es', confederation: 'UEFA', group: 'Groupe D' },
-        { name: 'Suède', code: 'se', confederation: 'UEFA', group: 'Groupe E' },
-        { name: 'Turquie', code: 'tr', confederation: 'UEFA', group: 'Groupe F' },
-        { name: 'Suisse', code: 'ch', confederation: 'UEFA', group: 'Groupe G' },
-        { name: 'Nouvelle-Zélande', code: 'nz', confederation: 'OFC', group: 'Groupe H' },
-        { name: 'Philippines', code: 'ph', confederation: 'AFC', group: 'Groupe A' },
-        { name: 'Venezuela', code: 've', confederation: 'CONMEBOL', group: 'Groupe B' },
+        // Groupe D
+        { name: 'États-Unis', code: 'us', confederation: 'CONCACAF', group: 'Groupe D' },
+        { name: 'Paraguay', code: 'py', confederation: 'CONMEBOL', group: 'Groupe D' },
+        { name: 'Australie', code: 'au', confederation: 'AFC', group: 'Groupe D' },
+        { name: 'Turquie', code: 'tr', confederation: 'UEFA', group: 'Groupe D' },
+        // Groupe E
+        { name: 'Allemagne', code: 'de', confederation: 'UEFA', group: 'Groupe E' },
+        { name: 'Curaçao', code: 'cw', confederation: 'CONCACAF', group: 'Groupe E' },
+        { name: "Côte d'Ivoire", code: 'ci', confederation: 'CAF', group: 'Groupe E' },
+        { name: 'Équateur', code: 'ec', confederation: 'CONMEBOL', group: 'Groupe E' },
+        // Groupe F
+        { name: 'Pays-Bas', code: 'nl', confederation: 'UEFA', group: 'Groupe F' },
+        { name: 'Japon', code: 'jp', confederation: 'AFC', group: 'Groupe F' },
+        { name: 'Suède', code: 'se', confederation: 'UEFA', group: 'Groupe F' },
+        { name: 'Tunisie', code: 'tn', confederation: 'CAF', group: 'Groupe F' },
+        // Groupe G
+        { name: 'Belgique', code: 'be', confederation: 'UEFA', group: 'Groupe G' },
+        { name: 'Égypte', code: 'eg', confederation: 'CAF', group: 'Groupe G' },
+        { name: 'Iran', code: 'ir', confederation: 'AFC', group: 'Groupe G' },
+        { name: 'Nouvelle-Zélande', code: 'nz', confederation: 'OFC', group: 'Groupe G' },
+        // Groupe H
+        { name: 'Espagne', code: 'es', confederation: 'UEFA', group: 'Groupe H' },
+        { name: 'Cap-Vert', code: 'cv', confederation: 'CAF', group: 'Groupe H' },
+        { name: 'Arabie Saoudite', code: 'sa', confederation: 'AFC', group: 'Groupe H' },
+        { name: 'Uruguay', code: 'uy', confederation: 'CONMEBOL', group: 'Groupe H' },
+        // Groupe I
+        { name: 'France', code: 'fr', confederation: 'UEFA', group: 'Groupe I' },
+        { name: 'Sénégal', code: 'sn', confederation: 'CAF', group: 'Groupe I' },
+        { name: 'Irak', code: 'iq', confederation: 'AFC', group: 'Groupe I' },
+        { name: 'Norvège', code: 'no', confederation: 'UEFA', group: 'Groupe I' },
+        // Groupe J
+        { name: 'Argentine', code: 'ar', confederation: 'CONMEBOL', group: 'Groupe J' },
+        { name: 'Algérie', code: 'dz', confederation: 'CAF', group: 'Groupe J' },
+        { name: 'Autriche', code: 'at', confederation: 'UEFA', group: 'Groupe J' },
+        { name: 'Jordanie', code: 'jo', confederation: 'AFC', group: 'Groupe J' },
+        // Groupe K
+        { name: 'Portugal', code: 'pt', confederation: 'UEFA', group: 'Groupe K' },
+        { name: 'RD Congo', code: 'cd', confederation: 'CAF', group: 'Groupe K' },
+        { name: 'Ouzbékistan', code: 'uz', confederation: 'AFC', group: 'Groupe K' },
+        { name: 'Colombie', code: 'co', confederation: 'CONMEBOL', group: 'Groupe K' },
+        // Groupe L
+        { name: 'Angleterre', code: 'gb-eng', confederation: 'UEFA', group: 'Groupe L' },
+        { name: 'Croatie', code: 'hr', confederation: 'UEFA', group: 'Groupe L' },
+        { name: 'Ghana', code: 'gh', confederation: 'CAF', group: 'Groupe L' },
+        { name: 'Panama', code: 'pa', confederation: 'CONCACAF', group: 'Groupe L' },
       ],
     };
 
     const STATIC_FALLBACK_MATCHES = {
-      // CdM 2026 — matchs à venir (aucun score fictif)
+      // CdM 2026 — données réelles (fallback si API indisponible)
       2026: [
-        { id: 1, homeTeam: { name: 'Mexique', shortName: 'MEX', tla: 'MEX' }, awayTeam: { name: 'Afrique du Sud', shortName: 'RSA', tla: 'RSA' }, score: { fullTime: { home: null, away: null } }, status: 'SCHEDULED', utcDate: '2026-06-11T19:00:00Z', stage: 'GROUP_STAGE', group: 'Groupe A', venue: 'Estadio Azteca' },
-        { id: 2, homeTeam: { name: 'Corée du Sud', shortName: 'KOR', tla: 'KOR' }, awayTeam: { name: 'Tchéquie', shortName: 'CZE', tla: 'CZE' }, score: { fullTime: { home: null, away: null } }, status: 'SCHEDULED', utcDate: '2026-06-11T22:00:00Z', stage: 'GROUP_STAGE', group: 'Groupe A', venue: 'Estadio BBVA' },
-        { id: 3, homeTeam: { name: 'USA', shortName: 'USA', tla: 'USA' }, awayTeam: { name: 'Algérie', shortName: 'ALG', tla: 'ALG' }, score: { fullTime: { home: null, away: null } }, status: 'SCHEDULED', utcDate: '2026-06-12T19:00:00Z', stage: 'GROUP_STAGE', group: 'Groupe B', venue: 'AT&T Stadium' },
-        { id: 4, homeTeam: { name: 'Panama', shortName: 'PAN', tla: 'PAN' }, awayTeam: { name: 'Maroc', shortName: 'MAR', tla: 'MAR' }, score: { fullTime: { home: null, away: null } }, status: 'SCHEDULED', utcDate: '2026-06-12T22:00:00Z', stage: 'GROUP_STAGE', group: 'Groupe B', venue: 'NRG Stadium' },
-        { id: 5, homeTeam: { name: 'Argentine', shortName: 'ARG', tla: 'ARG' }, awayTeam: { name: 'Croatie', shortName: 'CRO', tla: 'CRO' }, score: { fullTime: { home: null, away: null } }, status: 'SCHEDULED', utcDate: '2026-06-13T19:00:00Z', stage: 'GROUP_STAGE', group: 'Groupe C', venue: 'Hard Rock Stadium' },
-        { id: 6, homeTeam: { name: 'France', shortName: 'FRA', tla: 'FRA' }, awayTeam: { name: 'Équateur', shortName: 'ECU', tla: 'ECU' }, score: { fullTime: { home: null, away: null } }, status: 'SCHEDULED', utcDate: '2026-06-13T22:00:00Z', stage: 'GROUP_STAGE', group: 'Groupe C', venue: 'Mercedes-Benz Stadium' },
-        { id: 7, homeTeam: { name: 'Brésil', shortName: 'BRA', tla: 'BRA' }, awayTeam: { name: 'Écosse', shortName: 'SCO', tla: 'SCO' }, score: { fullTime: { home: null, away: null } }, status: 'SCHEDULED', utcDate: '2026-06-14T19:00:00Z', stage: 'GROUP_STAGE', group: 'Groupe D', venue: 'MetLife Stadium' },
-        { id: 8, homeTeam: { name: 'Angleterre', shortName: 'ENG', tla: 'ENG' }, awayTeam: { name: 'Arabie Saoudite', shortName: 'KSA', tla: 'KSA' }, score: { fullTime: { home: null, away: null } }, status: 'SCHEDULED', utcDate: '2026-06-14T22:00:00Z', stage: 'GROUP_STAGE', group: 'Groupe D', venue: 'Gillette Stadium' },
+        // Matchs déjà terminés
+        { id: 537327, homeTeam: { name: 'Mexique', shortName: 'MEX', tla: 'MEX' }, awayTeam: { name: 'Afrique du Sud', shortName: 'RSA', tla: 'RSA' }, score: { fullTime: { home: 2, away: 0 } }, status: 'FINISHED', utcDate: '2026-06-11T19:00:00Z', stage: 'GROUP_STAGE', group: 'Groupe A', venue: 'Estadio Azteca' },
+        { id: 537328, homeTeam: { name: 'Corée du Sud', shortName: 'KOR', tla: 'KOR' }, awayTeam: { name: 'Tchéquie', shortName: 'CZE', tla: 'CZE' }, score: { fullTime: { home: 2, away: 1 } }, status: 'FINISHED', utcDate: '2026-06-12T02:00:00Z', stage: 'GROUP_STAGE', group: 'Groupe A', venue: 'Estadio BBVA' },
+        // Matchs programmés (groupe A)
+        { id: 537325, homeTeam: { name: 'Tchéquie', shortName: 'CZE', tla: 'CZE' }, awayTeam: { name: 'Mexique', shortName: 'MEX', tla: 'MEX' }, score: { fullTime: { home: null, away: null } }, status: 'SCHEDULED', utcDate: '2026-06-18T19:00:00Z', stage: 'GROUP_STAGE', group: 'Groupe A', venue: 'AT&T Stadium' },
+        { id: 537326, homeTeam: { name: 'Afrique du Sud', shortName: 'RSA', tla: 'RSA' }, awayTeam: { name: 'Corée du Sud', shortName: 'KOR', tla: 'KOR' }, score: { fullTime: { home: null, away: null } }, status: 'SCHEDULED', utcDate: '2026-06-18T22:00:00Z', stage: 'GROUP_STAGE', group: 'Groupe A', venue: 'Lumen Field' },
+        { id: 537329, homeTeam: { name: 'Mexique', shortName: 'MEX', tla: 'MEX' }, awayTeam: { name: 'Corée du Sud', shortName: 'KOR', tla: 'KOR' }, score: { fullTime: { home: null, away: null } }, status: 'SCHEDULED', utcDate: '2026-06-19T19:00:00Z', stage: 'GROUP_STAGE', group: 'Groupe A', venue: 'Mercedes-Benz Stadium' },
+        { id: 537330, homeTeam: { name: 'Afrique du Sud', shortName: 'RSA', tla: 'RSA' }, awayTeam: { name: 'Tchéquie', shortName: 'CZE', tla: 'CZE' }, score: { fullTime: { home: null, away: null } }, status: 'SCHEDULED', utcDate: '2026-06-19T22:00:00Z', stage: 'GROUP_STAGE', group: 'Groupe A', venue: 'Gillette Stadium' },
+        // Groupe B
+        { id: 537331, homeTeam: { name: 'Canada', shortName: 'CAN', tla: 'CAN' }, awayTeam: { name: 'Bosnie-Herzégovine', shortName: 'BIH', tla: 'BIH' }, score: { fullTime: { home: null, away: null } }, status: 'SCHEDULED', utcDate: '2026-06-12T19:00:00Z', stage: 'GROUP_STAGE', group: 'Groupe B', venue: 'BC Place' },
+        { id: 537332, homeTeam: { name: 'Qatar', shortName: 'QAT', tla: 'QAT' }, awayTeam: { name: 'Suisse', shortName: 'SUI', tla: 'SUI' }, score: { fullTime: { home: null, away: null } }, status: 'SCHEDULED', utcDate: '2026-06-13T19:00:00Z', stage: 'GROUP_STAGE', group: 'Groupe B', venue: 'Hard Rock Stadium' },
+        { id: 537335, homeTeam: { name: 'Suisse', shortName: 'SUI', tla: 'SUI' }, awayTeam: { name: 'Bosnie-Herzégovine', shortName: 'BIH', tla: 'BIH' }, score: { fullTime: { home: null, away: null } }, status: 'SCHEDULED', utcDate: '2026-06-18T19:00:00Z', stage: 'GROUP_STAGE', group: 'Groupe B', venue: 'Levi\'s Stadium' },
+        { id: 537336, homeTeam: { name: 'Canada', shortName: 'CAN', tla: 'CAN' }, awayTeam: { name: 'Qatar', shortName: 'QAT', tla: 'QAT' }, score: { fullTime: { home: null, away: null } }, status: 'SCHEDULED', utcDate: '2026-06-18T22:00:00Z', stage: 'GROUP_STAGE', group: 'Groupe B', venue: 'BMO Field' },
+        // Groupe C
+        { id: 537337, homeTeam: { name: 'Brésil', shortName: 'BRA', tla: 'BRA' }, awayTeam: { name: 'Maroc', shortName: 'MAR', tla: 'MAR' }, score: { fullTime: { home: null, away: null } }, status: 'SCHEDULED', utcDate: '2026-06-13T19:00:00Z', stage: 'GROUP_STAGE', group: 'Groupe C', venue: 'MetLife Stadium' },
+        { id: 537338, homeTeam: { name: 'Haïti', shortName: 'HAI', tla: 'HAI' }, awayTeam: { name: 'Écosse', shortName: 'SCO', tla: 'SCO' }, score: { fullTime: { home: null, away: null } }, status: 'SCHEDULED', utcDate: '2026-06-14T02:00:00Z', stage: 'GROUP_STAGE', group: 'Groupe C', venue: 'NRG Stadium' },
+        // Groupe D
+        { id: 537341, homeTeam: { name: 'États-Unis', shortName: 'USA', tla: 'USA' }, awayTeam: { name: 'Paraguay', shortName: 'PAR', tla: 'PAR' }, score: { fullTime: { home: null, away: null } }, status: 'SCHEDULED', utcDate: '2026-06-13T01:00:00Z', stage: 'GROUP_STAGE', group: 'Groupe D', venue: 'SoFi Stadium' },
+        { id: 537342, homeTeam: { name: 'Australie', shortName: 'AUS', tla: 'AUS' }, awayTeam: { name: 'Turquie', shortName: 'TUR', tla: 'TUR' }, score: { fullTime: { home: null, away: null } }, status: 'SCHEDULED', utcDate: '2026-06-14T02:00:00Z', stage: 'GROUP_STAGE', group: 'Groupe D', venue: 'AT&T Stadium' },
+        // Groupe E
+        { id: 537343, homeTeam: { name: 'Allemagne', shortName: 'GER', tla: 'GER' }, awayTeam: { name: 'Curaçao', shortName: 'CUW', tla: 'CUW' }, score: { fullTime: { home: null, away: null } }, status: 'SCHEDULED', utcDate: '2026-06-14T19:00:00Z', stage: 'GROUP_STAGE', group: 'Groupe E', venue: 'Lincoln Financial Field' },
+        { id: 537344, homeTeam: { name: "Côte d'Ivoire", shortName: 'CIV', tla: 'CIV' }, awayTeam: { name: 'Équateur', shortName: 'ECU', tla: 'ECU' }, score: { fullTime: { home: null, away: null } }, status: 'SCHEDULED', utcDate: '2026-06-14T22:00:00Z', stage: 'GROUP_STAGE', group: 'Groupe E', venue: 'Arrowhead Stadium' },
+        // Groupe F
+        { id: 537347, homeTeam: { name: 'Pays-Bas', shortName: 'NED', tla: 'NED' }, awayTeam: { name: 'Japon', shortName: 'JPN', tla: 'JPN' }, score: { fullTime: { home: null, away: null } }, status: 'SCHEDULED', utcDate: '2026-06-14T02:00:00Z', stage: 'GROUP_STAGE', group: 'Groupe F', venue: 'Mercedes-Benz Stadium' },
+        { id: 537348, homeTeam: { name: 'Suède', shortName: 'SWE', tla: 'SWE' }, awayTeam: { name: 'Tunisie', shortName: 'TUN', tla: 'TUN' }, score: { fullTime: { home: null, away: null } }, status: 'SCHEDULED', utcDate: '2026-06-15T19:00:00Z', stage: 'GROUP_STAGE', group: 'Groupe F', venue: 'Gillette Stadium' },
+        // Groupe G
+        { id: 537351, homeTeam: { name: 'Belgique', shortName: 'BEL', tla: 'BEL' }, awayTeam: { name: 'Égypte', shortName: 'EGY', tla: 'EGY' }, score: { fullTime: { home: null, away: null } }, status: 'SCHEDULED', utcDate: '2026-06-15T02:00:00Z', stage: 'GROUP_STAGE', group: 'Groupe G', venue: 'MetLife Stadium' },
+        { id: 537352, homeTeam: { name: 'Iran', shortName: 'IRN', tla: 'IRN' }, awayTeam: { name: 'Nouvelle-Zélande', shortName: 'NZL', tla: 'NZL' }, score: { fullTime: { home: null, away: null } }, status: 'SCHEDULED', utcDate: '2026-06-16T02:00:00Z', stage: 'GROUP_STAGE', group: 'Groupe G', venue: 'Lumen Field' },
+        // Groupe H
+        { id: 537355, homeTeam: { name: 'Espagne', shortName: 'ESP', tla: 'ESP' }, awayTeam: { name: 'Cap-Vert', shortName: 'CPV', tla: 'CPV' }, score: { fullTime: { home: null, away: null } }, status: 'SCHEDULED', utcDate: '2026-06-15T19:00:00Z', stage: 'GROUP_STAGE', group: 'Groupe H', venue: 'Hard Rock Stadium' },
+        { id: 537356, homeTeam: { name: 'Arabie Saoudite', shortName: 'KSA', tla: 'KSA' }, awayTeam: { name: 'Uruguay', shortName: 'URU', tla: 'URU' }, score: { fullTime: { home: null, away: null } }, status: 'SCHEDULED', utcDate: '2026-06-15T22:00:00Z', stage: 'GROUP_STAGE', group: 'Groupe H', venue: 'AT&T Stadium' },
+        // Groupe I
+        { id: 537359, homeTeam: { name: 'France', shortName: 'FRA', tla: 'FRA' }, awayTeam: { name: 'Sénégal', shortName: 'SEN', tla: 'SEN' }, score: { fullTime: { home: null, away: null } }, status: 'SCHEDULED', utcDate: '2026-06-16T19:00:00Z', stage: 'GROUP_STAGE', group: 'Groupe I', venue: 'Levi\'s Stadium' },
+        { id: 537360, homeTeam: { name: 'Irak', shortName: 'IRQ', tla: 'IRQ' }, awayTeam: { name: 'Norvège', shortName: 'NOR', tla: 'NOR' }, score: { fullTime: { home: null, away: null } }, status: 'SCHEDULED', utcDate: '2026-06-16T22:00:00Z', stage: 'GROUP_STAGE', group: 'Groupe I', venue: 'BC Place' },
+        // Groupe J
+        { id: 537363, homeTeam: { name: 'Argentine', shortName: 'ARG', tla: 'ARG' }, awayTeam: { name: 'Algérie', shortName: 'ALG', tla: 'ALG' }, score: { fullTime: { home: null, away: null } }, status: 'SCHEDULED', utcDate: '2026-06-17T01:00:00Z', stage: 'GROUP_STAGE', group: 'Groupe J', venue: 'Estadio Azteca' },
+        { id: 537364, homeTeam: { name: 'Autriche', shortName: 'AUT', tla: 'AUT' }, awayTeam: { name: 'Jordanie', shortName: 'JOR', tla: 'JOR' }, score: { fullTime: { home: null, away: null } }, status: 'SCHEDULED', utcDate: '2026-06-17T02:00:00Z', stage: 'GROUP_STAGE', group: 'Groupe J', venue: 'BMO Field' },
+        // Groupe K
+        { id: 537367, homeTeam: { name: 'Portugal', shortName: 'POR', tla: 'POR' }, awayTeam: { name: 'RD Congo', shortName: 'COD', tla: 'COD' }, score: { fullTime: { home: null, away: null } }, status: 'SCHEDULED', utcDate: '2026-06-17T19:00:00Z', stage: 'GROUP_STAGE', group: 'Groupe K', venue: 'SoFi Stadium' },
+        { id: 537368, homeTeam: { name: 'Ouzbékistan', shortName: 'UZB', tla: 'UZB' }, awayTeam: { name: 'Colombie', shortName: 'COL', tla: 'COL' }, score: { fullTime: { home: null, away: null } }, status: 'SCHEDULED', utcDate: '2026-06-18T01:00:00Z', stage: 'GROUP_STAGE', group: 'Groupe K', venue: 'NRG Stadium' },
+        // Groupe L
+        { id: 537371, homeTeam: { name: 'Angleterre', shortName: 'ENG', tla: 'ENG' }, awayTeam: { name: 'Croatie', shortName: 'CRO', tla: 'CRO' }, score: { fullTime: { home: null, away: null } }, status: 'SCHEDULED', utcDate: '2026-06-17T01:00:00Z', stage: 'GROUP_STAGE', group: 'Groupe L', venue: 'Gillette Stadium' },
+        { id: 537372, homeTeam: { name: 'Ghana', shortName: 'GHA', tla: 'GHA' }, awayTeam: { name: 'Panama', shortName: 'PAN', tla: 'PAN' }, score: { fullTime: { home: null, away: null } }, status: 'SCHEDULED', utcDate: '2026-06-17T02:00:00Z', stage: 'GROUP_STAGE', group: 'Groupe L', venue: 'Lumen Field' },
       ],
       // CdM 2022 — données historiques réelles (fallback hors période)
       2022: [
@@ -819,7 +876,7 @@
         return `
           <div class="group-section" role="group" aria-label="${g}">
             <h4 style="font-family: var(--font-display); font-size: var(--text-sm); color: var(--color-primary); margin: var(--space-4) 0 var(--space-2); text-transform: uppercase; letter-spacing: 0.05em;">${g}</h4>
-            <div class="grid grid-4">${chips}</div>
+            <div class="grid teams-pc-grid">${chips}</div>
           </div>`;
       }).join('');
     }
@@ -828,13 +885,34 @@
       const map = {};
       const teams = STATIC_FALLBACK_TEAMS[2026] || [];
       teams.forEach(t => map[t.name] = t.code);
-      const extra = {
+      // Mapping noms anglais API → codes ISO
+      const apiMap = {
+        'Mexico': 'mx', 'South Africa': 'za', 'South Korea': 'kr', 'Czechia': 'cz',
+        'Canada': 'ca', 'Bosnia-Herzegovina': 'ba', 'Qatar': 'qa', 'Switzerland': 'ch',
+        'Brazil': 'br', 'Morocco': 'ma', 'Haiti': 'ht', 'Scotland': 'gb-sct',
+        'United States': 'us', 'Paraguay': 'py', 'Australia': 'au', 'Turkey': 'tr',
+        'Germany': 'de', 'Curaçao': 'cw', 'Ivory Coast': 'ci', 'Ecuador': 'ec',
+        'Netherlands': 'nl', 'Japan': 'jp', 'Sweden': 'se', 'Tunisia': 'tn',
+        'Belgium': 'be', 'Egypt': 'eg', 'Iran': 'ir', 'New Zealand': 'nz',
+        'Spain': 'es', 'Cape Verde Islands': 'cv', 'Saudi Arabia': 'sa', 'Uruguay': 'uy',
+        'France': 'fr', 'Senegal': 'sn', 'Iraq': 'iq', 'Norway': 'no',
+        'Argentina': 'ar', 'Algeria': 'dz', 'Austria': 'at', 'Jordan': 'jo',
+        'Portugal': 'pt', 'Congo DR': 'cd', 'Uzbekistan': 'uz', 'Colombia': 'co',
+        'England': 'gb-eng', 'Croatia': 'hr', 'Ghana': 'gh', 'Panama': 'pa',
+        // Fallback français
         'Mexique': 'mx', 'Afrique du Sud': 'za', 'Corée du Sud': 'kr', 'Tchéquie': 'cz',
-        'USA': 'us', 'Algérie': 'dz', 'Panama': 'pa', 'Maroc': 'ma',
-        'Argentine': 'ar', 'Croatie': 'hr', 'France': 'fr', 'Équateur': 'ec',
+        'USA': 'us', 'États-Unis': 'us', 'Algérie': 'dz', 'Maroc': 'ma',
         'Brésil': 'br', 'Écosse': 'gb-sct', 'Angleterre': 'gb-eng', 'Arabie Saoudite': 'sa',
+        'Pays-Bas': 'nl', 'Équateur': 'ec', "Côte d'Ivoire": 'ci', 'Turquie': 'tr',
+        'Suède': 'se', 'Tunisie': 'tn', 'Belgique': 'be', 'Égypte': 'eg',
+        'Nouvelle-Zélande': 'nz', 'Espagne': 'es', 'Cap-Vert': 'cv', 'Uruguay': 'uy',
+        'Sénégal': 'sn', 'Irak': 'iq', 'Norvège': 'no', 'Argentine': 'ar',
+        'Autriche': 'at', 'Jordanie': 'jo', 'Portugal': 'pt', 'RD Congo': 'cd',
+        'Ouzbékistan': 'uz', 'Colombie': 'co', 'Croatie': 'hr', 'Ghana': 'gh',
+        'Haïti': 'ht', 'Australie': 'au', 'Paraguay': 'py', 'Allemagne': 'de',
+        'Iran': 'ir', 'Japon': 'jp',
       };
-      Object.assign(map, extra);
+      Object.assign(map, apiMap);
       const code = map[name] || 'xx';
       return `<img src="https://flagcdn.com/${code}.svg" alt="${name}" loading="lazy">`;
     }

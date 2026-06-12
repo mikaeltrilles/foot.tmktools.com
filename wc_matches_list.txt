@@ -1,0 +1,104 @@
+2026-06-11 | FINISHED   | Mexico                 2-0     South Africa           | GROUP_A
+2026-06-12 | FINISHED   | South Korea            2-1     Czechia                | GROUP_A
+2026-06-12 | TIMED      | Canada                 --      Bosnia-Herzegovina     | GROUP_B
+2026-06-13 | TIMED      | United States          --      Paraguay               | GROUP_D
+2026-06-13 | TIMED      | Qatar                  --      Switzerland            | GROUP_B
+2026-06-13 | TIMED      | Brazil                 --      Morocco                | GROUP_C
+2026-06-14 | TIMED      | Haiti                  --      Scotland               | GROUP_C
+2026-06-14 | TIMED      | Australia              --      Turkey                 | GROUP_D
+2026-06-14 | TIMED      | Germany                --      Curaçao                | GROUP_E
+2026-06-14 | TIMED      | Netherlands            --      Japan                  | GROUP_F
+2026-06-14 | TIMED      | Ivory Coast            --      Ecuador                | GROUP_E
+2026-06-15 | TIMED      | Sweden                 --      Tunisia                | GROUP_F
+2026-06-15 | TIMED      | Spain                  --      Cape Verde Islands     | GROUP_H
+2026-06-15 | TIMED      | Belgium                --      Egypt                  | GROUP_G
+2026-06-15 | TIMED      | Saudi Arabia           --      Uruguay                | GROUP_H
+2026-06-16 | TIMED      | Iran                   --      New Zealand            | GROUP_G
+2026-06-16 | TIMED      | France                 --      Senegal                | GROUP_I
+2026-06-16 | TIMED      | Iraq                   --      Norway                 | GROUP_I
+2026-06-17 | TIMED      | Argentina              --      Algeria                | GROUP_J
+2026-06-17 | TIMED      | Austria                --      Jordan                 | GROUP_J
+2026-06-17 | TIMED      | Portugal               --      Congo DR               | GROUP_K
+2026-06-17 | TIMED      | England                --      Croatia                | GROUP_L
+2026-06-17 | TIMED      | Ghana                  --      Panama                 | GROUP_L
+2026-06-18 | TIMED      | Uzbekistan             --      Colombia               | GROUP_K
+2026-06-18 | TIMED      | Czechia                --      South Africa           | GROUP_A
+2026-06-18 | TIMED      | Switzerland            --      Bosnia-Herzegovina     | GROUP_B
+2026-06-18 | TIMED      | Canada                 --      Qatar                  | GROUP_B
+2026-06-19 | TIMED      | Mexico                 --      South Korea            | GROUP_A
+2026-06-19 | TIMED      | United States          --      Australia              | GROUP_D
+2026-06-19 | TIMED      | Scotland               --      Morocco                | GROUP_C
+2026-06-20 | TIMED      | Brazil                 --      Haiti                  | GROUP_C
+2026-06-20 | TIMED      | Turkey                 --      Paraguay               | GROUP_D
+2026-06-20 | TIMED      | Netherlands            --      Sweden                 | GROUP_F
+2026-06-20 | TIMED      | Germany                --      Ivory Coast            | GROUP_E
+2026-06-21 | TIMED      | Ecuador                --      Curaçao                | GROUP_E
+2026-06-21 | TIMED      | Tunisia                --      Japan                  | GROUP_F
+2026-06-21 | TIMED      | Spain                  --      Saudi Arabia           | GROUP_H
+2026-06-21 | TIMED      | Belgium                --      Iran                   | GROUP_G
+2026-06-21 | TIMED      | Uruguay                --      Cape Verde Islands     | GROUP_H
+2026-06-22 | TIMED      | New Zealand            --      Egypt                  | GROUP_G
+2026-06-22 | TIMED      | Argentina              --      Austria                | GROUP_J
+2026-06-22 | TIMED      | France                 --      Iraq                   | GROUP_I
+2026-06-23 | TIMED      | Norway                 --      Senegal                | GROUP_I
+2026-06-23 | TIMED      | Jordan                 --      Algeria                | GROUP_J
+2026-06-23 | TIMED      | Portugal               --      Uzbekistan             | GROUP_K
+2026-06-23 | TIMED      | England                --      Ghana                  | GROUP_L
+2026-06-23 | TIMED      | Panama                 --      Croatia                | GROUP_L
+2026-06-24 | TIMED      | Colombia               --      Congo DR               | GROUP_K
+2026-06-24 | TIMED      | Switzerland            --      Canada                 | GROUP_B
+2026-06-24 | TIMED      | Bosnia-Herzegovina     --      Qatar                  | GROUP_B
+2026-06-24 | TIMED      | Morocco                --      Haiti                  | GROUP_C
+2026-06-24 | TIMED      | Scotland               --      Brazil                 | GROUP_C
+2026-06-25 | TIMED      | Czechia                --      Mexico                 | GROUP_A
+2026-06-25 | TIMED      | South Africa           --      South Korea            | GROUP_A
+2026-06-25 | TIMED      | Ecuador                --      Germany                | GROUP_E
+2026-06-25 | TIMED      | Curaçao                --      Ivory Coast            | GROUP_E
+2026-06-25 | TIMED      | Tunisia                --      Netherlands            | GROUP_F
+2026-06-25 | TIMED      | Japan                  --      Sweden                 | GROUP_F
+2026-06-26 | TIMED      | Turkey                 --      United States          | GROUP_D
+2026-06-26 | TIMED      | Paraguay               --      Australia              | GROUP_D
+2026-06-26 | TIMED      | Norway                 --      France                 | GROUP_I
+2026-06-26 | TIMED      | Senegal                --      Iraq                   | GROUP_I
+2026-06-27 | TIMED      | Uruguay                --      Spain                  | GROUP_H
+2026-06-27 | TIMED      | Cape Verde Islands     --      Saudi Arabia           | GROUP_H
+2026-06-27 | TIMED      | New Zealand            --      Belgium                | GROUP_G
+2026-06-27 | TIMED      | Egypt                  --      Iran                   | GROUP_G
+2026-06-27 | TIMED      | Panama                 --      England                | GROUP_L
+2026-06-27 | TIMED      | Croatia                --      Ghana                  | GROUP_L
+2026-06-27 | TIMED      | Colombia               --      Portugal               | GROUP_K
+2026-06-27 | TIMED      | Congo DR               --      Uzbekistan             | GROUP_K
+2026-06-28 | TIMED      | Jordan                 --      Argentina              | GROUP_J
+2026-06-28 | TIMED      | Algeria                --      Austria                | GROUP_J
+2026-06-28 | TIMED      | ???                    --      ???                    | N/A
+2026-06-29 | TIMED      | ???                    --      ???                    | N/A
+2026-06-29 | TIMED      | ???                    --      ???                    | N/A
+2026-06-30 | TIMED      | ???                    --      ???                    | N/A
+2026-06-30 | TIMED      | ???                    --      ???                    | N/A
+2026-06-30 | TIMED      | ???                    --      ???                    | N/A
+2026-07-01 | TIMED      | ???                    --      ???                    | N/A
+2026-07-01 | TIMED      | ???                    --      ???                    | N/A
+2026-07-01 | TIMED      | ???                    --      ???                    | N/A
+2026-07-02 | TIMED      | ???                    --      ???                    | N/A
+2026-07-02 | TIMED      | ???                    --      ???                    | N/A
+2026-07-02 | TIMED      | ???                    --      ???                    | N/A
+2026-07-03 | TIMED      | ???                    --      ???                    | N/A
+2026-07-03 | TIMED      | ???                    --      ???                    | N/A
+2026-07-03 | TIMED      | ???                    --      ???                    | N/A
+2026-07-04 | TIMED      | ???                    --      ???                    | N/A
+2026-07-04 | TIMED      | ???                    --      ???                    | N/A
+2026-07-04 | TIMED      | ???                    --      ???                    | N/A
+2026-07-05 | TIMED      | ???                    --      ???                    | N/A
+2026-07-06 | TIMED      | ???                    --      ???                    | N/A
+2026-07-06 | TIMED      | ???                    --      ???                    | N/A
+2026-07-07 | TIMED      | ???                    --      ???                    | N/A
+2026-07-07 | TIMED      | ???                    --      ???                    | N/A
+2026-07-07 | TIMED      | ???                    --      ???                    | N/A
+2026-07-09 | TIMED      | ???                    --      ???                    | N/A
+2026-07-10 | TIMED      | ???                    --      ???                    | N/A
+2026-07-11 | TIMED      | ???                    --      ???                    | N/A
+2026-07-12 | TIMED      | ???                    --      ???                    | N/A
+2026-07-14 | TIMED      | ???                    --      ???                    | N/A
+2026-07-15 | TIMED      | ???                    --      ???                    | N/A
+2026-07-18 | TIMED      | ???                    --      ???                    | N/A
+2026-07-19 | TIMED      | ???                    --      ???                    | N/A
