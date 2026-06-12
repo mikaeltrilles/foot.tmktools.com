@@ -443,17 +443,17 @@
       <h3 style="font-size: var(--text-lg); margin-bottom: var(--space-4); color: var(--color-text-muted);">Pays organisateurs</h3>
       <div class="grid grid-3 mb-4" id="hosts-grid">
         <article class="host-card">
-          <div class="flag" aria-hidden="true"><img src="https://flagcdn.com/w80/us.svg" alt="Drapeau États-Unis" loading="lazy"></div>
+          <div class="flag" aria-hidden="true"><img src="https://flagcdn.com/us.svg" alt="Drapeau États-Unis" loading="lazy"></div>
           <div class="name">États-Unis</div>
           <div class="cities">11 villes : Los Angeles, New York/New Jersey, Dallas, Atlanta, Seattle, Boston, Houston, Kansas City, Miami, Philadelphia, San Francisco Bay Area</div>
         </article>
         <article class="host-card">
-          <div class="flag" aria-hidden="true"><img src="https://flagcdn.com/w80/mx.svg" alt="Drapeau Mexique" loading="lazy"></div>
+          <div class="flag" aria-hidden="true"><img src="https://flagcdn.com/mx.svg" alt="Drapeau Mexique" loading="lazy"></div>
           <div class="name">Mexique</div>
           <div class="cities">3 villes : Mexico City, Guadalajara, Monterrey</div>
         </article>
         <article class="host-card">
-          <div class="flag" aria-hidden="true"><img src="https://flagcdn.com/w80/ca.svg" alt="Drapeau Canada" loading="lazy"></div>
+          <div class="flag" aria-hidden="true"><img src="https://flagcdn.com/ca.svg" alt="Drapeau Canada" loading="lazy"></div>
           <div class="name">Canada</div>
           <div class="cities">2 villes : Toronto, Vancouver</div>
         </article>
@@ -799,7 +799,7 @@
         const groupId = g.replace(/\s+/g, '-').toLowerCase();
         const chips = groups[g].map(t =>
           `<div class="team-chip" role="listitem">
-             <span class="flag" aria-hidden="true"><img src="https://flagcdn.com/w40/${t.code}.svg" alt="${t.name}" loading="lazy"></span>
+             <span class="flag" aria-hidden="true"><img src="https://flagcdn.com/${t.code}.svg" alt="${t.name}" loading="lazy"></span>
              <span>${t.name}</span>
              <span class="conf">${t.confederation}</span>
            </div>`
@@ -824,7 +824,7 @@
       };
       Object.assign(map, extra);
       const code = map[name] || 'xx';
-      return `<img src="https://flagcdn.com/w40/${code}.svg" alt="${name}" loading="lazy">`;
+      return `<img src="https://flagcdn.com/${code}.svg" alt="${name}" loading="lazy">`;
     }
 
     function renderMatches(matches, wc) {
