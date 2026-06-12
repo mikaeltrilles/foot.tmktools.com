@@ -1018,7 +1018,7 @@
         if (activeFilter === 'all') return true;
         if (activeFilter === 'live') return effectiveStatus === 'IN_PLAY' || effectiveStatus === 'PAUSED' || effectiveStatus === 'LIVE';
         if (activeFilter === 'finished') return m.status === 'FINISHED' || m.status === 'AWARDED';
-        if (activeFilter === 'upcoming') return m.status === 'SCHEDULED' || m.status === 'POSTPONED' || m.status === 'TIMED';
+        if (activeFilter === 'upcoming') return (m.status === 'SCHEDULED' || m.status === 'POSTPONED' || m.status === 'TIMED') && nowUTC < matchTime;
         return true;
       });
 
