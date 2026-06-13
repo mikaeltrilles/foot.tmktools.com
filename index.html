@@ -391,9 +391,14 @@
     .palmares-legend { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--space-3); margin-top: var(--space-4); font-size: var(--text-xs); color: var(--color-text); }
     .palmares-legend .legend-item { display: flex; align-items: center; gap: var(--space-1); }
     .palmares-legend .legend-dot { width: 10px; height: 10px; border-radius: 2px; }
-    .match-scorers { margin-top: var(--space-2); font-size: 11px; color: var(--color-text-muted); display: flex; flex-direction: column; gap: var(--space-1); }
-    .match-scorer { display: flex; align-items: center; gap: var(--space-2); }
-    .match-scorer .scorer-minute { font-weight: 700; color: var(--color-primary); min-width: 24px; }
+    .match-scorers { margin-top: var(--space-2); font-size: 11px; color: var(--color-text-muted); display: flex; justify-content: space-between; gap: var(--space-2); }
+    .match-scorers-col { display: flex; flex-direction: column; gap: var(--space-1); flex: 1; }
+    .match-scorers-col.home { align-items: flex-start; }
+    .match-scorers-col.away { align-items: flex-end; }
+    .match-scorer { display: flex; align-items: center; gap: var(--space-1); }
+    .match-scorers-col.home .match-scorer { flex-direction: row; }
+    .match-scorers-col.away .match-scorer { flex-direction: row-reverse; }
+    .match-scorer .scorer-minute { font-weight: 700; color: var(--color-primary); min-width: 20px; }
     .match-scorer .scorer-name { color: var(--color-text); }
 
     /* Skeleton */
@@ -1185,15 +1190,26 @@
         previousScores.set(prevKey, homeScore);
         previousScores.set(prevAwayKey, awayScore);
         const scorers = getGoalScorers(m);
+        const homeScorers = scorers.filter(g => g.side === 'home');
+        const awayScorers = scorers.filter(g => g.side === 'away');
         const scorersHtml = scorers.length ? `
           <div class="match-scorers">
-            ${scorers.map(g => `
-              <div class="match-scorer">
-                <span class="scorer-minute">${g.minute}'</span>
-                <span class="scorer-name">${g.scorer}</span>
-                ${g.side === 'away' ? '⚽' : '⚽'}
-              </div>
-            `).join('')}
+            <div class="match-scorers-col home">
+              ${homeScorers.map(g => `
+                <div class="match-scorer">
+                  <span class="scorer-minute">${g.minute}'</span>
+                  <span class="scorer-name">${g.scorer}</span>
+                </div>
+              `).join('')}
+            </div>
+            <div class="match-scorers-col away">
+              ${awayScorers.map(g => `
+                <div class="match-scorer">
+                  <span class="scorer-name">${g.scorer}</span>
+                  <span class="scorer-minute">${g.minute}'</span>
+                </div>
+              `).join('')}
+            </div>
           </div>` : '';
 
         // Badge coloré selon le statut (effective)
