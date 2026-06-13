@@ -1064,8 +1064,8 @@
         const prevHome = previousScores.get(prevKey);
         const prevAway = previousScores.get(prevAwayKey);
         const flashClass = (prevHome !== undefined && prevAway !== undefined && (prevHome !== homeScore || prevAway !== awayScore)) ? ' flash' : '';
-        if (homeScore !== '-' && homeScore !== null) previousScores.set(prevKey, homeScore);
-        if (awayScore !== '-' && awayScore !== null) previousScores.set(prevAwayKey, awayScore);
+        previousScores.set(prevKey, homeScore);
+        previousScores.set(prevAwayKey, awayScore);
 
         // Badge coloré selon le statut (effective)
         let badgeClass = '';
@@ -1310,6 +1310,11 @@
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
         const now = Date.now();
+        const liveMatches = data.matches.filter(m => m.status === 'IN_PLAY' || m.status === 'PAUSED' || m.status === 'LIVE');
+        if (liveMatches.length) {
+          console.log('[API]', liveMatches.length, 'match(s) en cours —', new Date().toLocaleTimeString('fr-FR'));
+          liveMatches.forEach(m => console.log('  ', m.homeTeam.name, m.score?.fullTime?.home ?? '-', '–', m.score?.fullTime?.away ?? '-', m.awayTeam.name, '|', m.minute ? m.minute + "'" : ''));
+        }
         data.matches.forEach(m => lastRefreshTime.set(m.id, now));
         chartMatches = data.matches;
         renderMatches(data.matches, wc);
@@ -1454,7 +1459,7 @@
       initScrollReveal();
       updateFooterTimes();
 
-      const intervalMs = currentWC.isLive ? 30000 : currentWC.isSoon ? 300000 : 3600000;
+      const intervalMs = currentWC.isLive ? 15000 : currentWC.isSoon ? 300000 : 3600000;
       if (refreshInterval) clearInterval(refreshInterval);
       refreshInterval = setInterval(async () => {
         currentWC = await autoDiscoverWorldCup();
