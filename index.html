@@ -1165,8 +1165,11 @@
 
       let hasLive = false;
 
-      // Trier par date croissante
-      filtered.sort((a, b) => new Date(a.utcDate) - new Date(b.utcDate));
+      // Trier par date croissante sauf "Terminés" qui est décroissant (plus récent en haut)
+      filtered.sort((a, b) => {
+        const da = new Date(a.utcDate), db = new Date(b.utcDate);
+        return activeFilter === 'finished' ? db - da : da - db;
+      });
 
       container.innerHTML = filtered.map(m => {
         // Scores : fullTime (live/final), halfTime, ou directement score.*
