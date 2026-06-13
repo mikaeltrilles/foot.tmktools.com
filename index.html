@@ -817,7 +817,7 @@
         { id: 537337, homeTeam: { name: 'Brésil', shortName: 'BRA', tla: 'BRA' }, awayTeam: { name: 'Maroc', shortName: 'MAR', tla: 'MAR' }, score: { fullTime: { home: null, away: null } }, status: 'SCHEDULED', utcDate: '2026-06-13T19:00:00Z', stage: 'GROUP_STAGE', group: 'Groupe C', venue: 'MetLife Stadium' },
         { id: 537338, homeTeam: { name: 'Haïti', shortName: 'HAI', tla: 'HAI' }, awayTeam: { name: 'Écosse', shortName: 'SCO', tla: 'SCO' }, score: { fullTime: { home: null, away: null } }, status: 'SCHEDULED', utcDate: '2026-06-14T02:00:00Z', stage: 'GROUP_STAGE', group: 'Groupe C', venue: 'NRG Stadium' },
         // Groupe D
-        { id: 537345, homeTeam: { name: 'United States', shortName: 'USA', tla: 'USA' }, awayTeam: { name: 'Paraguay', shortName: 'PAR', tla: 'PAR' }, score: { fullTime: { home: 3, away: 0 } }, status: 'PAUSED', utcDate: '2026-06-13T01:00:00Z', stage: 'GROUP_STAGE', group: 'Groupe D', venue: 'SoFi Stadium' },
+        { id: 537345, homeTeam: { name: 'United States', shortName: 'USA', tla: 'USA' }, awayTeam: { name: 'Paraguay', shortName: 'PAR', tla: 'PAR' }, score: { fullTime: { home: 4, away: 1 } }, status: 'FINISHED', utcDate: '2026-06-13T01:00:00Z', stage: 'GROUP_STAGE', group: 'Groupe D', venue: 'SoFi Stadium' },
         { id: 537346, homeTeam: { name: 'Australia', shortName: 'AUS', tla: 'AUS' }, awayTeam: { name: 'Turkey', shortName: 'TUR', tla: 'TUR' }, score: { fullTime: { home: null, away: null } }, status: 'SCHEDULED', utcDate: '2026-06-14T04:00:00Z', stage: 'GROUP_STAGE', group: 'Groupe D', venue: 'AT&T Stadium' },
         // Groupe E
         { id: 537343, homeTeam: { name: 'Allemagne', shortName: 'GER', tla: 'GER' }, awayTeam: { name: 'Curaçao', shortName: 'CUW', tla: 'CUW' }, score: { fullTime: { home: null, away: null } }, status: 'SCHEDULED', utcDate: '2026-06-14T19:00:00Z', stage: 'GROUP_STAGE', group: 'Groupe E', venue: 'Lincoln Financial Field' },
@@ -873,9 +873,11 @@
         { minute: 21, scorer: 'Jovo Lukić', team: 'away' }
       ],
       537345: [
-        { minute: 7, scorer: 'D. Bobadilla', team: 'home' },
+        { minute: 7, scorer: 'D. Bobadilla (OG)', team: 'home' },
         { minute: 31, scorer: 'F. Balogun', team: 'home' },
-        { minute: '45+5', scorer: 'F. Balogun', team: 'home' }
+        { minute: '45+5', scorer: 'F. Balogun', team: 'home' },
+        { minute: '90+8', scorer: 'G. Reyna', team: 'home' },
+        { minute: 73, scorer: 'Maurício', team: 'away' }
       ]
     };
 
@@ -894,40 +896,20 @@
         data.games.forEach(g => {
           const home = g.home_team_name_en;
           const away = g.away_team_name_en;
+          if (!home || !away) return;
           const key = `${home}|${away}`;
           const scorers = [];
           // Parse home_scorers
           const homeScorersRaw = g.home_scorers;
           if (homeScorersRaw && homeScorersRaw !== 'null') {
-            const cleaned = String(homeScorersRaw)
-              .replace(/[“”]/g, '"')
-              .replace(/[‘’]/g, "'")
-              .replace(/^{/, '[')
-              .replace(/}$/, ']')
-              .replace(/","/g, '","');
-            try {
-              const arr = JSON.parse(cleaned);
-              arr.forEach(s => scorers.push({ raw: s, side: 'home' }));
-            } catch (e) {
-              const arr = cleaned.split(',').map(s => s.trim().replace(/^["']|["']$/g, '')).filter(Boolean);
-              arr.forEach(s => scorers.push({ raw: s, side: 'home' }));
-            }
+            const items = extractScorerItems(String(homeScorersRaw));
+            items.forEach(s => scorers.push({ raw: s, side: 'home' }));
           }
           // Parse away_scorers
           const awayScorersRaw = g.away_scorers;
           if (awayScorersRaw && awayScorersRaw !== 'null') {
-            const cleaned = String(awayScorersRaw)
-              .replace(/[“”]/g, '"')
-              .replace(/[‘’]/g, "'")
-              .replace(/^{/, '[')
-              .replace(/}$/, ']');
-            try {
-              const arr = JSON.parse(cleaned);
-              arr.forEach(s => scorers.push({ raw: s, side: 'away' }));
-            } catch (e) {
-              const arr = cleaned.split(',').map(s => s.trim().replace(/^["']|["']$/g, '')).filter(Boolean);
-              arr.forEach(s => scorers.push({ raw: s, side: 'away' }));
-            }
+            const items = extractScorerItems(String(awayScorersRaw));
+            items.forEach(s => scorers.push({ raw: s, side: 'away' }));
           }
           newMap.set(key, scorers);
         });
@@ -937,13 +919,39 @@
       }
     }
 
-    function parseScorerString(raw) {
-      // Formats : "F. Balogun 45'+5'", "J. Quiñones 9'", "Jovo Lukić 21'"
-      const match = raw.match(/^(.+?)\s+(\d+(?:\+\d+)?')$/);
-      if (match) {
-        return { scorer: match[1].trim(), minute: match[2].replace("'", '') };
+    function extractScorerItems(raw) {
+      if (!raw || raw === 'null') return [];
+      const str = String(raw)
+        .replace(/[“”]/g, '"')
+        .replace(/[‘’]/g, "'")
+        .replace(/^{/, '[')
+        .replace(/}$/, ']');
+      // Essayer JSON
+      try {
+        const arr = JSON.parse(str);
+        if (Array.isArray(arr)) return arr.filter(s => s && String(s).trim());
+      } catch (e) { /* ignorer */ }
+      // Fallback : extraire tout ce qui est entre guillemets
+      const matches = str.match(/"([^"]*)"/g);
+      if (matches) {
+        return matches.map(m => m.replace(/^["']|["']$/g, '')).filter(Boolean);
       }
-      return { scorer: raw, minute: '' };
+      // Dernier recours : split par virgule
+      return str.split(',').map(s => s.trim().replace(/^["']|["']$/g, '')).filter(Boolean);
+    }
+
+    function parseScorerString(raw) {
+      const cleaned = String(raw).trim();
+      if (!cleaned) return null;
+      // Format : "F. Balogun 45'+5'", "J. Quiñones 9'", "D. Bobadilla 7'(OG)", "G. Reyna 90'+8'"
+      const match = cleaned.match(/^(.+?)\s+(\d+(?:'\+\d+)?')(.+)?$/);
+      if (match) {
+        const name = match[1].trim();
+        const minute = match[2].replace(/'/g, '');
+        const suffix = (match[3] || '').trim();
+        return { scorer: name + (suffix ? ' ' + suffix : ''), minute };
+      }
+      return { scorer: cleaned, minute: '' };
     }
 
     function getScorersForMatch(m) {
@@ -955,8 +963,8 @@
       if (wcData && wcData.length) {
         return wcData.map(g => {
           const parsed = parseScorerString(g.raw);
-          return { minute: parsed.minute, scorer: parsed.scorer, side: g.side };
-        });
+          return parsed ? { minute: parsed.minute, scorer: parsed.scorer, side: g.side } : null;
+        }).filter(Boolean);
       }
       // Fallback API football-data v4
       if (m.goals && m.goals.length) {
@@ -1131,7 +1139,7 @@
       };
       Object.assign(map, apiMap);
       const code = map[name] || 'xx';
-      return `<img src="https://flagcdn.com/${code}.svg" alt="${name}" loading="lazy">`;
+      return `<img src="https://flagcdn.com/${code}.svg" alt="" loading="lazy">`;
     }
 
     function renderMatches(matches, wc) {
