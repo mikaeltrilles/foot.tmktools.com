@@ -391,6 +391,10 @@
     .palmares-legend { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--space-3); margin-top: var(--space-4); font-size: var(--text-xs); color: var(--color-text); }
     .palmares-legend .legend-item { display: flex; align-items: center; gap: var(--space-1); }
     .palmares-legend .legend-dot { width: 10px; height: 10px; border-radius: 2px; }
+    .match-scorers { margin-top: var(--space-2); font-size: 11px; color: var(--color-text-muted); display: flex; flex-direction: column; gap: var(--space-1); }
+    .match-scorer { display: flex; align-items: center; gap: var(--space-2); }
+    .match-scorer .scorer-minute { font-weight: 700; color: var(--color-primary); min-width: 24px; }
+    .match-scorer .scorer-name { color: var(--color-text); }
 
     /* Skeleton */
     .skeleton {
@@ -808,8 +812,8 @@
         { id: 537337, homeTeam: { name: 'Brésil', shortName: 'BRA', tla: 'BRA' }, awayTeam: { name: 'Maroc', shortName: 'MAR', tla: 'MAR' }, score: { fullTime: { home: null, away: null } }, status: 'SCHEDULED', utcDate: '2026-06-13T19:00:00Z', stage: 'GROUP_STAGE', group: 'Groupe C', venue: 'MetLife Stadium' },
         { id: 537338, homeTeam: { name: 'Haïti', shortName: 'HAI', tla: 'HAI' }, awayTeam: { name: 'Écosse', shortName: 'SCO', tla: 'SCO' }, score: { fullTime: { home: null, away: null } }, status: 'SCHEDULED', utcDate: '2026-06-14T02:00:00Z', stage: 'GROUP_STAGE', group: 'Groupe C', venue: 'NRG Stadium' },
         // Groupe D
-        { id: 537341, homeTeam: { name: 'États-Unis', shortName: 'USA', tla: 'USA' }, awayTeam: { name: 'Paraguay', shortName: 'PAR', tla: 'PAR' }, score: { fullTime: { home: null, away: null } }, status: 'SCHEDULED', utcDate: '2026-06-13T01:00:00Z', stage: 'GROUP_STAGE', group: 'Groupe D', venue: 'SoFi Stadium' },
-        { id: 537342, homeTeam: { name: 'Australie', shortName: 'AUS', tla: 'AUS' }, awayTeam: { name: 'Turquie', shortName: 'TUR', tla: 'TUR' }, score: { fullTime: { home: null, away: null } }, status: 'SCHEDULED', utcDate: '2026-06-14T02:00:00Z', stage: 'GROUP_STAGE', group: 'Groupe D', venue: 'AT&T Stadium' },
+        { id: 537345, homeTeam: { name: 'United States', shortName: 'USA', tla: 'USA' }, awayTeam: { name: 'Paraguay', shortName: 'PAR', tla: 'PAR' }, score: { fullTime: { home: 3, away: 0 } }, status: 'PAUSED', utcDate: '2026-06-13T01:00:00Z', stage: 'GROUP_STAGE', group: 'Groupe D', venue: 'SoFi Stadium' },
+        { id: 537346, homeTeam: { name: 'Australia', shortName: 'AUS', tla: 'AUS' }, awayTeam: { name: 'Turkey', shortName: 'TUR', tla: 'TUR' }, score: { fullTime: { home: null, away: null } }, status: 'SCHEDULED', utcDate: '2026-06-14T04:00:00Z', stage: 'GROUP_STAGE', group: 'Groupe D', venue: 'AT&T Stadium' },
         // Groupe E
         { id: 537343, homeTeam: { name: 'Allemagne', shortName: 'GER', tla: 'GER' }, awayTeam: { name: 'Curaçao', shortName: 'CUW', tla: 'CUW' }, score: { fullTime: { home: null, away: null } }, status: 'SCHEDULED', utcDate: '2026-06-14T19:00:00Z', stage: 'GROUP_STAGE', group: 'Groupe E', venue: 'Lincoln Financial Field' },
         { id: 537344, homeTeam: { name: "Côte d'Ivoire", shortName: 'CIV', tla: 'CIV' }, awayTeam: { name: 'Équateur', shortName: 'ECU', tla: 'ECU' }, score: { fullTime: { home: null, away: null } }, status: 'SCHEDULED', utcDate: '2026-06-14T22:00:00Z', stage: 'GROUP_STAGE', group: 'Groupe E', venue: 'Arrowhead Stadium' },
@@ -848,6 +852,13 @@
       ],
     };
 
+    // Buteurs fallback (API plan gratuit ne retourne pas les goals)
+    const STATIC_FALLBACK_GOALS = {
+      537345: [
+        { minute: 7, scorer: 'Florian Balogun', team: 'United States' }
+      ]
+    };
+
     let previousScores = new Map();
     let lastRefreshTime = new Map();
     let chartMatches = [];
@@ -882,6 +893,23 @@
         'FINAL': 'Finale',
       };
       return phases[stage] || stage;
+    }
+
+    function getGoalScorers(m) {
+      // API format (si disponible) ou fallback
+      const apiGoals = m.goals || [];
+      const fallbackGoals = STATIC_FALLBACK_GOALS[m.id] || [];
+      const goals = apiGoals.length ? apiGoals : fallbackGoals;
+      if (!goals.length) return [];
+      const homeName = m.homeTeam?.name;
+      const awayName = m.awayTeam?.name;
+      return goals.map(g => {
+        const minute = g.minute ?? g.time ?? '';
+        const scorer = g.scorer?.name ?? g.player?.name ?? g.scorer ?? '';
+        const team = g.team?.name ?? g.team ?? '';
+        const side = (team === homeName) ? 'home' : (team === awayName) ? 'away' : 'home';
+        return { minute, scorer, side };
+      }).filter(g => g.scorer);
     }
 
     function getStatusLabel(status) {
@@ -1066,6 +1094,17 @@
         const flashClass = (prevHome !== undefined && prevAway !== undefined && (prevHome !== homeScore || prevAway !== awayScore)) ? ' flash' : '';
         previousScores.set(prevKey, homeScore);
         previousScores.set(prevAwayKey, awayScore);
+        const scorers = getGoalScorers(m);
+        const scorersHtml = scorers.length ? `
+          <div class="match-scorers">
+            ${scorers.map(g => `
+              <div class="match-scorer">
+                <span class="scorer-minute">${g.minute}'</span>
+                <span class="scorer-name">${g.scorer}</span>
+                ${g.side === 'away' ? '⚽' : '⚽'}
+              </div>
+            `).join('')}
+          </div>` : '';
 
         // Badge coloré selon le statut (effective)
         let badgeClass = '';
@@ -1090,6 +1129,7 @@
                 <span class="name">${m.awayTeam?.name || 'TBD'}</span>
               </div>
             </div>
+            ${scorersHtml}
             <div class="match-meta">
               <div class="match-meta-row">📅 ${dateStr}</div>
               <div class="match-meta-row">🕐 ${localTime} (local) · <span class="time-paris">${parisTime} (Paris)</span></div>
