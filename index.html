@@ -854,14 +854,117 @@
 
     // Buteurs fallback (API plan gratuit ne retourne pas les goals)
     const STATIC_FALLBACK_GOALS = {
+      537327: [
+        { minute: 9, scorer: 'J. Quiñones', team: 'home' },
+        { minute: 67, scorer: 'R. Jiménez', team: 'home' }
+      ],
+      537328: [
+        { minute: 67, scorer: 'I.B. Hwang', team: 'home' },
+        { minute: 80, scorer: 'H.G. Oh', team: 'home' },
+        { minute: 59, scorer: 'L. Krejčí', team: 'away' }
+      ],
+      537333: [
+        { minute: 11, scorer: 'C. Larin', team: 'home' },
+        { minute: 21, scorer: 'Jovo Lukić', team: 'away' }
+      ],
       537345: [
-        { minute: 7, scorer: 'Florian Balogun', team: 'United States' }
+        { minute: 7, scorer: 'D. Bobadilla', team: 'home' },
+        { minute: 31, scorer: 'F. Balogun', team: 'home' },
+        { minute: '45+5', scorer: 'F. Balogun', team: 'home' }
       ]
     };
 
     let previousScores = new Map();
     let lastRefreshTime = new Map();
     let chartMatches = [];
+    let wc26Scorers = new Map(); // buteurs depuis worldcup26.ir
+
+    async function fetchWorldcup26Scorers() {
+      try {
+        const res = await fetch('https://worldcup26.ir/get/games', { cache: 'no-store' });
+        if (!res.ok) return;
+        const data = await res.json();
+        if (!data.games || !Array.isArray(data.games)) return;
+        const newMap = new Map();
+        data.games.forEach(g => {
+          const home = g.home_team_name_en;
+          const away = g.away_team_name_en;
+          const key = `${home}|${away}`;
+          const scorers = [];
+          // Parse home_scorers
+          const homeScorersRaw = g.home_scorers;
+          if (homeScorersRaw && homeScorersRaw !== 'null') {
+            const cleaned = String(homeScorersRaw)
+              .replace(/[“”]/g, '"')
+              .replace(/[‘’]/g, "'")
+              .replace(/^{/, '[')
+              .replace(/}$/, ']')
+              .replace(/","/g, '","');
+            try {
+              const arr = JSON.parse(cleaned);
+              arr.forEach(s => scorers.push({ raw: s, side: 'home' }));
+            } catch (e) {
+              const arr = cleaned.split(',').map(s => s.trim().replace(/^["']|["']$/g, '')).filter(Boolean);
+              arr.forEach(s => scorers.push({ raw: s, side: 'home' }));
+            }
+          }
+          // Parse away_scorers
+          const awayScorersRaw = g.away_scorers;
+          if (awayScorersRaw && awayScorersRaw !== 'null') {
+            const cleaned = String(awayScorersRaw)
+              .replace(/[“”]/g, '"')
+              .replace(/[‘’]/g, "'")
+              .replace(/^{/, '[')
+              .replace(/}$/, ']');
+            try {
+              const arr = JSON.parse(cleaned);
+              arr.forEach(s => scorers.push({ raw: s, side: 'away' }));
+            } catch (e) {
+              const arr = cleaned.split(',').map(s => s.trim().replace(/^["']|["']$/g, '')).filter(Boolean);
+              arr.forEach(s => scorers.push({ raw: s, side: 'away' }));
+            }
+          }
+          newMap.set(key, scorers);
+        });
+        wc26Scorers = newMap;
+      } catch (e) {
+        // Silencieux si l'API externe échoue
+      }
+    }
+
+    function parseScorerString(raw) {
+      // Formats : "F. Balogun 45'+5'", "J. Quiñones 9'", "Jovo Lukić 21'"
+      const match = raw.match(/^(.+?)\s+(\d+(?:\+\d+)?')$/);
+      if (match) {
+        return { scorer: match[1].trim(), minute: match[2].replace("'", '') };
+      }
+      return { scorer: raw, minute: '' };
+    }
+
+    function getScorersForMatch(m) {
+      const home = m.homeTeam?.name;
+      const away = m.awayTeam?.name;
+      // Essayer d'abord worldcup26.ir
+      const wcKey = `${home}|${away}`;
+      const wcData = wc26Scorers.get(wcKey);
+      if (wcData && wcData.length) {
+        return wcData.map(g => {
+          const parsed = parseScorerString(g.raw);
+          return { minute: parsed.minute, scorer: parsed.scorer, side: g.side };
+        });
+      }
+      // Fallback API football-data v4
+      if (m.goals && m.goals.length) {
+        return m.goals.map(g => ({
+          minute: g.minute ?? g.time ?? '',
+          scorer: g.scorer?.name ?? g.player?.name ?? '',
+          side: (g.team?.name ?? g.team) === m.homeTeam?.name ? 'home' : 'away'
+        })).filter(g => g.scorer);
+      }
+      // Fallback statique
+      const fb = STATIC_FALLBACK_GOALS[m.id] || [];
+      return fb.map(g => ({ minute: g.minute, scorer: g.scorer, side: g.team }));
+    }
 
     function toParisTime(utcString) {
       try {
@@ -896,20 +999,7 @@
     }
 
     function getGoalScorers(m) {
-      // API format (si disponible) ou fallback
-      const apiGoals = m.goals || [];
-      const fallbackGoals = STATIC_FALLBACK_GOALS[m.id] || [];
-      const goals = apiGoals.length ? apiGoals : fallbackGoals;
-      if (!goals.length) return [];
-      const homeName = m.homeTeam?.name;
-      const awayName = m.awayTeam?.name;
-      return goals.map(g => {
-        const minute = g.minute ?? g.time ?? '';
-        const scorer = g.scorer?.name ?? g.player?.name ?? g.scorer ?? '';
-        const team = g.team?.name ?? g.team ?? '';
-        const side = (team === homeName) ? 'home' : (team === awayName) ? 'away' : 'home';
-        return { minute, scorer, side };
-      }).filter(g => g.scorer);
+      return getScorersForMatch(m);
     }
 
     function getStatusLabel(status) {
@@ -1333,6 +1423,8 @@
     async function fetchAndRenderMatches(wc) {
       if (!wc) return;
       const fallback = STATIC_FALLBACK_MATCHES[wc.year] || STATIC_FALLBACK_MATCHES[2026] || [];
+      // Récupérer les buteurs depuis worldcup26.ir en parallèle
+      await fetchWorldcup26Scorers();
       if (!API_KEY) {
         const now = Date.now();
         fallback.forEach(m => lastRefreshTime.set(m.id, now));
@@ -1343,10 +1435,12 @@
         return;
       }
       try {
-        const res = await fetch(
-          `https://api.football-data.org/v4/competitions/${WC_COMPETITION_CODE}/matches?nocache=${Date.now()}`,
-          { headers: { 'X-Auth-Token': API_KEY } }
-        );
+        const [res] = await Promise.all([
+          fetch(
+            `https://api.football-data.org/v4/competitions/${WC_COMPETITION_CODE}/matches?nocache=${Date.now()}`,
+            { headers: { 'X-Auth-Token': API_KEY } }
+          )
+        ]);
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
         const now = Date.now();
