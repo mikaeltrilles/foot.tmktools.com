@@ -1435,7 +1435,7 @@
           return `
             <tr>
               <td class="rank">${i + 1}</td>
-              <td><span class="flag-tiny">${flagForTeam(t.team)}</span> ${t.team}</td>
+              <td class="team-cell"><span class="flag-tiny" aria-hidden="true"><img src="https://flagcdn.com/${flagCodeForTeam(t.team)}.svg" alt="" loading="lazy"></span> <span class="team-name">${t.team}</span></td>
               <td>${t.played}</td>
               <td>${t.won}</td>
               <td>${t.drawn}</td>
@@ -1529,8 +1529,11 @@
         'Iran': 'ir', 'Japon': 'jp',
       };
       Object.assign(map, apiMap);
-      const code = map[name] || 'xx';
-      return `<img src="https://flagcdn.com/${code}.svg" alt="" loading="lazy">`;
+      return map[name] || 'xx';
+    }
+
+    function flagForTeam(name) {
+      return `<img src="https://flagcdn.com/${flagCodeForTeam(name)}.svg" alt="" loading="lazy">`;
     }
 
     function renderMatches(matches, wc) {
@@ -1748,8 +1751,17 @@
       const entries = Object.entries(dataMap).sort((a, b) => b[1] - a[1]).slice(0, 16);
       const labels = entries.map(e => e[0]);
       const data = entries.map(e => e[1]);
-      const bgColors = entries.map(() => 'rgba(46,204,113,0.7)');
-      const borderColors = entries.map(() => 'rgba(46,204,113,1)');
+      const maxGoals = Math.max(1, ...data);
+      // Échelle de couleur verte (faible) → jaune/or (élevé)
+      function goalColor(value, alpha) {
+        const t = value / maxGoals;
+        const r = Math.round(46 + (241 - 46) * t);
+        const g = Math.round(204 + (196 - 204) * t);
+        const b = Math.round(113 + (15 - 113) * t);
+        return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+      }
+      const bgColors = data.map(v => goalColor(v, 0.75));
+      const borderColors = data.map(v => goalColor(v, 1));
 
       if (goalsChartInstance) { goalsChartInstance.destroy(); }
       goalsChartInstance = new Chart(ctx, {
