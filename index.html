@@ -1231,13 +1231,8 @@
       if (isWc26Live || m.status === 'IN_PLAY' || m.status === 'PAUSED' || m.status === 'LIVE') return 'live';
       const now = new Date();
       const matchTime = new Date(m.utcDate);
-      // Fallback temporel si l'API n'est pas à jour
-      if (m.status === 'SCHEDULED' || m.status === 'TIMED') {
-        const threeHoursAfter = new Date(matchTime.getTime() + 3 * 60 * 60 * 1000);
-        if (now >= matchTime && now <= threeHoursAfter) return 'live';
-        if (now > threeHoursAfter) return 'finished';
-        return 'upcoming';
-      }
+      // Si le match a déjà commencé/passé selon l'horloge, le considérer comme terminé (faute de flag live)
+      if (now >= matchTime) return 'finished';
       return 'upcoming';
     }
 
