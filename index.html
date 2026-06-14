@@ -12,6 +12,7 @@
   <meta property="og:description" content="Suivi live de la Coupe du Monde de Football FIFA">
   <meta property="og:image" content="https://foot.tmktools.com/assets/og-image.svg">
   <meta property="og:type" content="website">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E⚽%3C/text%3E%3C/svg%3E">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -403,6 +404,31 @@
     .match-scorer .scorer-minute { font-weight: 700; color: var(--color-primary); min-width: 20px; }
     .match-scorer .scorer-name { color: var(--color-text); }
 
+    /* Classements */
+    .standings-table { width: 100%; border-collapse: collapse; font-size: var(--text-sm); }
+    .standings-table th, .standings-table td { padding: var(--space-2) var(--space-3); text-align: center; }
+    .standings-table th:first-child, .standings-table td:first-child { text-align: left; }
+    .standings-table td:nth-child(2) { text-align: left; }
+    .standings-table .points { color: var(--color-primary); font-weight: 700; }
+    @media (min-width: 1200px) { #standings-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--space-6); } }
+
+    /* Cartes buteurs */
+    .scorer-card {
+      display: flex; align-items: center; gap: var(--space-4);
+      background: var(--color-surface); border: 1px solid var(--color-border);
+      border-radius: var(--radius-md); padding: var(--space-3) var(--space-4);
+    }
+    .scorer-rank {
+      width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;
+      background: var(--color-surface-2); border-radius: 50%;
+      font-family: var(--font-display); font-weight: 700; font-size: var(--text-sm);
+    }
+    .scorer-info { flex: 1; min-width: 0; }
+    .scorer-name { font-weight: 600; color: var(--color-text); }
+    .scorer-meta { font-size: var(--text-xs); color: var(--color-text-muted); margin-top: var(--space-1); }
+    @media (min-width: 768px) { #scorers-list { grid-template-columns: repeat(2, 1fr); } }
+    @media (min-width: 1200px) { #scorers-list { grid-template-columns: repeat(3, 1fr); } }
+
     /* Skeleton */
     .skeleton {
       background: linear-gradient(90deg, var(--color-surface-2) 25%, var(--color-surface-offset) 50%, var(--color-surface-2) 75%);
@@ -496,7 +522,9 @@
       </div>
       <nav class="site-nav" aria-label="Navigation principale">
         <a href="#matches" class="nav-link">Matchs</a>
+        <a href="#classements" class="nav-link">Classements</a>
         <a href="#equipes" class="nav-link">Équipes</a>
+        <a href="#buteurs" class="nav-link">Buteurs</a>
         <a href="#palmares" class="nav-link">Palmarès</a>
         <a href="#prochaines" class="nav-link">Prochaines</a>
       </nav>
@@ -531,6 +559,19 @@
         <canvas id="goals-chart" aria-label="Graphique des buts marqués par équipe"></canvas>
       </div>
     </section>
+    <!-- ═══════════════════════════════════════════
+         SECTION CLASSEMENTS
+         ═══════════════════════════════════════════ -->
+    <section class="section" id="classements" aria-labelledby="classements-title">
+      <h2 class="section-title" id="classements-title">
+        <svg class="icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path><path d="M4 22h16"></path><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"></path><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"></path><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path></svg>
+        Classements de la phase de groupes
+      </h2>
+      <div id="standings-grid" role="region" aria-label="Classements par groupe">
+        <!-- Généré par JS -->
+      </div>
+    </section>
+
     <!-- ═══════════════════════════════════════════
          SECTION ÉQUIPES
          ═══════════════════════════════════════════ -->
@@ -640,6 +681,19 @@
       </h2>
 
       <div class="grid grid-1" id="prochaines-list">
+        <!-- Généré par JS -->
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION BUTEURS
+         ═══════════════════════════════════════════ -->
+    <section class="section" id="buteurs" aria-labelledby="buteurs-title">
+      <h2 class="section-title" id="buteurs-title">
+        <svg class="icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M12 8v8"></path><path d="M8 12h8"></path></svg>
+        Tous les buteurs
+      </h2>
+      <div id="scorers-list" class="grid grid-1" role="list">
         <!-- Généré par JS -->
       </div>
     </section>
@@ -1201,6 +1255,12 @@
     }
 
     async function autoDiscoverWorldCup() {
+      // Pendant la CdM 2026 on utilise worldcup26.ir : on saute l'appel CORS football-data.org
+      const now = new Date();
+      const wc2026 = WORLD_CUPS.find(wc => wc.year === 2026);
+      if (wc2026 && now >= new Date(wc2026.start) && now <= new Date(wc2026.end)) {
+        return { ...wc2026, isLive: true, isSoon: false };
+      }
       if (!API_KEY) return detectActiveWorldCup();
       try {
         const res = await fetch(
@@ -1259,6 +1319,136 @@
             <h4 style="font-family: var(--font-display); font-size: var(--text-sm); color: var(--color-primary); margin: var(--space-4) 0 var(--space-2); text-transform: uppercase; letter-spacing: 0.05em;">${g}</h4>
             <div class="grid teams-pc-grid">${chips}</div>
           </div>`;
+      }).join('');
+    }
+
+    function computeGroupStandings(matches) {
+      const stats = {};
+      matches.forEach(m => {
+        if (!m.group || m.stage !== 'GROUP_STAGE') return;
+        const group = m.group;
+        const home = m.homeTeam?.name;
+        const away = m.awayTeam?.name;
+        if (!home || !away) return;
+        const homeScore = m.score?.fullTime?.home;
+        const awayScore = m.score?.fullTime?.away;
+        const isFinished = getMatchEffectiveStatus(m) === 'finished';
+        if (!stats[group]) stats[group] = {};
+        [home, away].forEach(team => {
+          if (!stats[group][team]) {
+            stats[group][team] = { team, played: 0, won: 0, drawn: 0, lost: 0, gf: 0, ga: 0, points: 0 };
+          }
+        });
+        const homeStats = stats[group][home];
+        const awayStats = stats[group][away];
+        if (isFinished && homeScore !== null && homeScore !== undefined && awayScore !== null && awayScore !== undefined) {
+          homeStats.played += 1;
+          awayStats.played += 1;
+          homeStats.gf += homeScore;
+          homeStats.ga += awayScore;
+          awayStats.gf += awayScore;
+          awayStats.ga += homeScore;
+          if (homeScore > awayScore) {
+            homeStats.won += 1; homeStats.points += 3;
+            awayStats.lost += 1;
+          } else if (homeScore < awayScore) {
+            awayStats.won += 1; awayStats.points += 3;
+            homeStats.lost += 1;
+          } else {
+            homeStats.drawn += 1; homeStats.points += 1;
+            awayStats.drawn += 1; awayStats.points += 1;
+          }
+        }
+      });
+      // Trier chaque groupe par points, puis différence de buts
+      return Object.fromEntries(Object.entries(stats).map(([group, teamsMap]) => {
+        const sorted = Object.values(teamsMap).sort((a, b) => {
+          if (b.points !== a.points) return b.points - a.points;
+          const aDiff = a.gf - a.ga;
+          const bDiff = b.gf - b.ga;
+          if (bDiff !== aDiff) return bDiff - aDiff;
+          if (b.gf !== a.gf) return b.gf - a.gf;
+          return a.team.localeCompare(b.team, 'fr');
+        });
+        return [group, sorted];
+      }));
+    }
+
+    function renderStandings(matches) {
+      const container = document.getElementById('standings-grid');
+      if (!container) return;
+      const standings = computeGroupStandings(matches);
+      const groups = Object.keys(standings).sort((a, b) => a.localeCompare(b, 'fr'));
+      if (!groups.length) {
+        container.innerHTML = '<p class="text-center" style="color: var(--color-text-muted); padding: var(--space-8) 0;">Aucun classement disponible pour le moment.</p>';
+        return;
+      }
+      container.innerHTML = groups.map(g => {
+        const rows = standings[g].map((t, i) => {
+          const diff = t.gf - t.ga;
+          const diffStr = diff > 0 ? `+${diff}` : diff;
+          return `
+            <tr>
+              <td class="rank">${i + 1}</td>
+              <td><span class="flag-tiny">${flagForTeam(t.team)}</span> ${t.team}</td>
+              <td>${t.played}</td>
+              <td>${t.won}</td>
+              <td>${t.drawn}</td>
+              <td>${t.lost}</td>
+              <td>${t.gf}:${t.ga}</td>
+              <td>${diffStr}</td>
+              <td class="points"><strong>${t.points}</strong></td>
+            </tr>`;
+        }).join('');
+        return `
+          <div class="group-section" role="group" aria-label="${g}">
+            <h4 style="font-family: var(--font-display); font-size: var(--text-sm); color: var(--color-primary); margin: var(--space-4) 0 var(--space-2); text-transform: uppercase; letter-spacing: 0.05em;">${g}</h4>
+            <div class="card" style="overflow-x: auto;">
+              <table class="data-table standings-table">
+                <thead>
+                  <tr>
+                    <th>#</th><th>Équipe</th><th>J</th><th>V</th><th>N</th><th>D</th><th>BP:BC</th><th>Diff.</th><th>Pts</th>
+                  </tr>
+                </thead>
+                <tbody>${rows}</tbody>
+              </table>
+            </div>
+          </div>`;
+      }).join('');
+    }
+
+    function renderAllScorers(matches) {
+      const container = document.getElementById('scorers-list');
+      if (!container) return;
+      const scorers = {};
+      matches.forEach(m => {
+        const goals = getGoalScorers(m) || [];
+        goals.forEach(g => {
+          if (!g || !g.scorer) return;
+          const key = g.scorer;
+          if (!scorers[key]) scorers[key] = { name: g.scorer, count: 0, teams: new Set(), minutes: [] };
+          scorers[key].count += 1;
+          const teamName = g.side === 'home' ? (m.homeTeam?.name || '') : (m.awayTeam?.name || '');
+          if (teamName) scorers[key].teams.add(teamName);
+          if (g.minute) scorers[key].minutes.push(String(g.minute));
+        });
+      });
+      const list = Object.values(scorers).sort((a, b) => b.count - a.count || a.name.localeCompare(b.name, 'fr'));
+      if (!list.length) {
+        container.innerHTML = '<p class="text-center" style="color: var(--color-text-muted); padding: var(--space-8) 0;">Aucun buteur enregistré pour le moment.</p>';
+        return;
+      }
+      container.innerHTML = list.map((s, i) => {
+        const teamNames = Array.from(s.teams).join(' / ');
+        const minutes = s.minutes.slice(0, 5).join(', ') + (s.minutes.length > 5 ? '...' : '');
+        return `
+          <article class="scorer-card" role="listitem">
+            <div class="scorer-rank">${i + 1}</div>
+            <div class="scorer-info">
+              <div class="scorer-name">${s.name}</div>
+              <div class="scorer-meta">${teamNames} · ${s.count} but${s.count > 1 ? 's' : ''}${minutes ? ' · ' + minutes + '\'' : ''}</div>
+            </div>
+          </article>`;
       }).join('');
     }
 
@@ -1552,6 +1742,11 @@
       });
     }
 
+    function renderRankingsAndScorers() {
+      renderStandings(chartMatches);
+      renderAllScorers(chartMatches);
+    }
+
     function initPalmaresChart() {
       const ctx = document.getElementById('palmares-chart');
       if (!ctx || !window.Chart) return;
@@ -1619,6 +1814,7 @@
           chartMatches = wc26Matches;
           renderMatches(wc26Matches, wc);
           initCharts();
+          renderRankingsAndScorers();
           updateLastRefresh(false, 'worldcup26.ir');
           return;
         }
@@ -1632,6 +1828,7 @@
         chartMatches = fallback;
         renderMatches(fallback, wc);
         initCharts();
+        renderRankingsAndScorers();
         updateLastRefresh(true);
         return;
       }
@@ -1654,11 +1851,13 @@
         chartMatches = data.matches;
         renderMatches(data.matches, wc);
         initCharts();
+        renderRankingsAndScorers();
         updateLastRefresh(false);
       } catch (e) {
         chartMatches = fallback;
         renderMatches(fallback, wc);
         initCharts();
+        renderRankingsAndScorers();
         updateLastRefresh(true);
       }
     }
@@ -1810,11 +2009,13 @@
       selectBestTab(chartMatches);
       // Forcer un re-render après sélection de l'onglet par défaut pour appliquer le bon filtre
       renderMatches(chartMatches, currentWC);
+      renderRankingsAndScorers();
       initTheme();
       initScrollReveal();
       updateFooterTimes();
 
-      const intervalMs = currentWC.isLive ? 15000 : currentWC.isSoon ? 300000 : 3600000;
+      // Pendant la CdM 2026, worldcup26.ir rate-limite : rafraîchir toutes les 60s max
+      const intervalMs = currentWC.isLive ? (currentWC.year === 2026 ? 60000 : 15000) : currentWC.isSoon ? 300000 : 3600000;
       if (refreshInterval) clearInterval(refreshInterval);
       refreshInterval = setInterval(async () => {
         currentWC = await autoDiscoverWorldCup();
