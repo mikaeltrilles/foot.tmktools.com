@@ -495,8 +495,8 @@
         </div>
       </div>
       <nav class="site-nav" aria-label="Navigation principale">
-        <a href="#equipes" class="nav-link">Équipes</a>
         <a href="#matches" class="nav-link">Matchs</a>
+        <a href="#equipes" class="nav-link">Équipes</a>
         <a href="#palmares" class="nav-link">Palmarès</a>
         <a href="#prochaines" class="nav-link">Prochaines</a>
       </nav>
@@ -505,6 +505,32 @@
 
   <main class="container" style="padding-top: var(--space-8);">
 
+    <!-- ═══════════════════════════════════════════
+         SECTION MATCHES
+         ═══════════════════════════════════════════ -->
+    <section class="section" id="matches" aria-labelledby="matches-title">
+      <h2 class="section-title" id="matches-title">
+        <svg class="icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M12 6v6l4 2"></path></svg>
+        Tableau des matchs en temps réel
+      </h2>
+
+      <div class="tabs" role="tablist" aria-label="Filtrer les matchs">
+        <button class="tab" role="tab" aria-selected="true" data-filter="live" tabindex="0">En cours</button>
+        <button class="tab" role="tab" aria-selected="false" data-filter="upcoming" tabindex="-1">À venir</button>
+        <button class="tab" role="tab" aria-selected="false" data-filter="finished" tabindex="-1">Terminés</button>
+      </div>
+
+      <div id="matches-list" role="region" aria-live="polite" aria-label="Liste des matchs">
+        <div class="grid grid-1" id="matches-grid">
+          <!-- Généré par JS -->
+        </div>
+      </div>
+
+      <h3 style="font-size: var(--text-lg); margin-top: var(--space-12); margin-bottom: var(--space-4); color: var(--color-text-muted);">Buts marqués par équipe</h3>
+      <div class="chart-container">
+        <canvas id="goals-chart" aria-label="Graphique des buts marqués par équipe"></canvas>
+      </div>
+    </section>
     <!-- ═══════════════════════════════════════════
          SECTION ÉQUIPES
          ═══════════════════════════════════════════ -->
@@ -556,33 +582,6 @@
       <h3 style="font-size: var(--text-lg); margin-bottom: var(--space-4); margin-top: var(--space-8); color: var(--color-text-muted);">48 Équipes qualifiées</h3>
       <div id="teams-grid" role="list">
         <!-- Généré par JS -->
-      </div>
-    </section>
-
-    <!-- ═══════════════════════════════════════════
-         SECTION MATCHES
-         ═══════════════════════════════════════════ -->
-    <section class="section" id="matches" aria-labelledby="matches-title">
-      <h2 class="section-title" id="matches-title">
-        <svg class="icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M12 6v6l4 2"></path></svg>
-        Tableau des matchs en temps réel
-      </h2>
-
-      <div class="tabs" role="tablist" aria-label="Filtrer les matchs">
-        <button class="tab" role="tab" aria-selected="true" data-filter="live" tabindex="0">En cours</button>
-        <button class="tab" role="tab" aria-selected="false" data-filter="upcoming" tabindex="-1">À venir</button>
-        <button class="tab" role="tab" aria-selected="false" data-filter="finished" tabindex="-1">Terminés</button>
-      </div>
-
-      <div id="matches-list" role="region" aria-live="polite" aria-label="Liste des matchs">
-        <div class="grid grid-1" id="matches-grid">
-          <!-- Généré par JS -->
-        </div>
-      </div>
-
-      <h3 style="font-size: var(--text-lg); margin-top: var(--space-12); margin-bottom: var(--space-4); color: var(--color-text-muted);">Buts marqués par équipe</h3>
-      <div class="chart-container">
-        <canvas id="goals-chart" aria-label="Graphique des buts marqués par équipe"></canvas>
       </div>
     </section>
 
@@ -1000,6 +999,38 @@
       } catch (e) { return '--:--'; }
     }
 
+    function formatMatchDateTime(utcString, stadium) {
+      try {
+        const date = new Date(utcString);
+        const tz = STADIUM_TIMEZONES[stadium] || 'UTC';
+        const local = new Intl.DateTimeFormat('fr-FR', {
+          timeZone: tz, weekday: 'long', day: 'numeric', month: 'long',
+          hour: '2-digit', minute: '2-digit'
+        }).format(date);
+        const paris = new Intl.DateTimeFormat('fr-FR', {
+          timeZone: 'Europe/Paris', hour: '2-digit', minute: '2-digit'
+        }).format(date);
+        return { local, paris, date };
+      } catch (e) {
+        return { local: utcString, paris: utcString, date: new Date(utcString) };
+      }
+    }
+
+    function getMatchEffectiveStatus(m) {
+      if (m.status === 'FINISHED' || m.status === 'AWARDED') return 'finished';
+      if (m.status === 'IN_PLAY' || m.status === 'PAUSED' || m.status === 'LIVE') return 'live';
+      const now = new Date();
+      const matchTime = new Date(m.utcDate);
+      // Fallback temporel si l'API n'est pas à jour
+      if (m.status === 'SCHEDULED' || m.status === 'TIMED') {
+        const threeHoursAfter = new Date(matchTime.getTime() + 3 * 60 * 60 * 1000);
+        if (now >= matchTime && now <= threeHoursAfter) return 'live';
+        if (now > threeHoursAfter) return 'finished';
+        return 'upcoming';
+      }
+      return 'upcoming';
+    }
+
     function formatPhase(stage) {
       const phases = {
         'GROUP_STAGE': 'Phase de groupes',
@@ -1153,19 +1184,16 @@
       }
 
       const activeFilter = document.querySelector('.tab[aria-selected="true"]')?.dataset.filter || 'all';
-      const nowUTC = new Date();
       const filtered = matches.filter(m => {
-        const matchTime = new Date(m.utcDate);
-        const isProbablyLive = (m.status === 'TIMED' || m.status === 'SCHEDULED') && nowUTC >= matchTime;
-        const effectiveStatus = isProbablyLive ? 'IN_PLAY' : m.status;
-
-        if (activeFilter === 'live') return effectiveStatus === 'IN_PLAY' || effectiveStatus === 'PAUSED' || effectiveStatus === 'LIVE';
-        if (activeFilter === 'finished') return m.status === 'FINISHED' || m.status === 'AWARDED';
-        if (activeFilter === 'upcoming') return (m.status === 'SCHEDULED' || m.status === 'POSTPONED' || m.status === 'TIMED') && nowUTC < matchTime;
+        const effective = getMatchEffectiveStatus(m);
+        if (activeFilter === 'live') return effective === 'live';
+        if (activeFilter === 'finished') return effective === 'finished';
+        if (activeFilter === 'upcoming') return effective === 'upcoming';
         return true;
       });
 
-      let hasLive = false;
+      // Détecte s'il y a au moins un match en direct dans l'ensemble des données
+      const hasLive = matches.some(m => getMatchEffectiveStatus(m) === 'live');
 
       // Trier par date croissante sauf "Terminés" qui est décroissant (plus récent en haut)
       filtered.sort((a, b) => {
@@ -1173,26 +1201,37 @@
         return activeFilter === 'finished' ? db - da : da - db;
       });
 
+      const globalBadge = document.getElementById('global-live-badge');
+      if (globalBadge) {
+        if (hasLive) globalBadge.classList.remove('hidden');
+        else globalBadge.classList.add('hidden');
+      }
+
+      if (!filtered.length) {
+        const emptyMessages = {
+          live: 'Aucun match en cours pour le moment.',
+          upcoming: 'Aucun match à venir.',
+          finished: 'Aucun match terminé.'
+        };
+        container.innerHTML = `<p class="text-center" style="color: var(--color-text-muted); padding: var(--space-8) 0;">${emptyMessages[activeFilter] || 'Aucun match à afficher.'}</p>`;
+        return;
+      }
+
       container.innerHTML = filtered.map(m => {
         // Scores : fullTime (live/final), halfTime, ou directement score.*
         let homeScore = (m.score && m.score.fullTime && m.score.fullTime.home !== null && m.score.fullTime.home !== undefined) ? m.score.fullTime.home : (m.score && m.score.halfTime && m.score.halfTime.home !== null && m.score.halfTime.home !== undefined ? m.score.halfTime.home : '-');
         let awayScore = (m.score && m.score.fullTime && m.score.fullTime.away !== null && m.score.fullTime.away !== undefined) ? m.score.fullTime.away : (m.score && m.score.halfTime && m.score.halfTime.away !== null && m.score.halfTime.away !== undefined ? m.score.halfTime.away : '-');
         if (homeScore === null || homeScore === undefined) homeScore = '-';
         if (awayScore === null || awayScore === undefined) awayScore = '-';
-        const nowForLive = new Date();
-        const matchTimeForLive = new Date(m.utcDate);
-        const isProbablyLiveClient = (m.status === 'TIMED' || m.status === 'SCHEDULED') && nowForLive >= matchTimeForLive;
-        const isLive = m.status === 'IN_PLAY' || m.status === 'PAUSED' || m.status === 'LIVE' || isProbablyLiveClient;
-        if (isLive) hasLive = true;
-        const statusLabel = isProbablyLiveClient ? 'EN COURS' : getStatusLabel(m.status);
+        const effectiveStatus = getMatchEffectiveStatus(m);
+        const isLive = effectiveStatus === 'live';
+        const isFinished = effectiveStatus === 'finished';
+        const statusLabel = isLive ? 'EN COURS' : getStatusLabel(m.status);
         const phase = formatPhase(m.stage);
         const venue = m.venue || 'Stade à confirmer';
         const city = STADIUM_CITIES[venue] || '';
         const country = STADIUM_COUNTRIES[venue] || '';
-        const localTime = toLocalTime(m.utcDate, venue);
-        const parisTime = toParisTime(m.utcDate);
-        const dateObj = new Date(m.utcDate);
-        const dateStr = dateObj.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' });
+        const { local: localDateTime, paris: parisTime } = formatMatchDateTime(m.utcDate, venue);
         const minute = (isLive && m.minute) ? ` (${m.minute}')` : '';
         const dotClass = isLive ? 'status-dot live' : 'status-dot';
         const prevKey = `${m.id}-home`;
@@ -1225,9 +1264,9 @@
             </div>
           </div>` : '';
 
-        // Badge coloré selon le statut (effective)
+        // Badge coloré selon le statut effectif
         let badgeClass = '';
-        if (m.status === 'FINISHED' || m.status === 'AWARDED') badgeClass = 'finished';
+        if (isFinished) badgeClass = 'finished';
         else if (isLive) badgeClass = 'live';
         else badgeClass = 'upcoming';
 
@@ -1250,20 +1289,14 @@
             </div>
             ${scorersHtml}
             <div class="match-meta">
-              <div class="match-meta-row">📅 ${dateStr}</div>
-              <div class="match-meta-row">🕐 ${localTime} (local) · <span class="time-paris">${parisTime} (Paris)</span></div>
+              <div class="match-meta-row">📅 ${localDateTime}</div>
+              <div class="match-meta-row">🕐 <span class="time-paris">${parisTime} (date/heure de Paris)</span></div>
               <div class="match-meta-row">📍 ${venue}${city ? ' - ' + city : ''}${country ? ' - ' + country : ''}</div>
               ${(isLive && lastRefreshTime.has(m.id)) ? `<span class="refresh-indicator">Maj ${new Date(lastRefreshTime.get(m.id)).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit',second:'2-digit'})}</span>` : ''}
             </div>
           </article>
         `;
       }).join('');
-
-      const globalBadge = document.getElementById('global-live-badge');
-      if (globalBadge) {
-        if (hasLive) globalBadge.classList.remove('hidden');
-        else globalBadge.classList.add('hidden');
-      }
     }
 
     function renderNextWorldCups() {
@@ -1480,11 +1513,13 @@
         }
         data.matches.forEach(m => lastRefreshTime.set(m.id, now));
         chartMatches = data.matches;
+        selectBestTab(data.matches);
         renderMatches(data.matches, wc);
         initCharts();
         updateLastRefresh(false);
       } catch (e) {
         chartMatches = fallback;
+        selectBestTab(fallback);
         renderMatches(fallback, wc);
         initCharts();
         updateLastRefresh(true);
@@ -1507,6 +1542,23 @@
       const paris = new Intl.DateTimeFormat('fr-FR', { timeZone: 'Europe/Paris', hour: '2-digit', minute: '2-digit', second: '2-digit' }).format(now);
       const utc = new Intl.DateTimeFormat('fr-FR', { timeZone: 'UTC', hour: '2-digit', minute: '2-digit', second: '2-digit' }).format(now);
       el.textContent = `Heure actuelle Paris : ${paris} · UTC : ${utc}`;
+    }
+
+    function selectBestTab(matches) {
+      const tabs = document.querySelectorAll('.tab');
+      if (!tabs.length) return;
+      const counts = { live: 0, upcoming: 0, finished: 0 };
+      (matches || []).forEach(m => { counts[getMatchEffectiveStatus(m)]++; });
+      let best = 'live';
+      if (counts.live > 0) best = 'live';
+      else if (counts.upcoming > 0) best = 'upcoming';
+      else if (counts.finished > 0) best = 'finished';
+      else best = 'upcoming';
+      tabs.forEach(t => {
+        const selected = t.dataset.filter === best;
+        t.setAttribute('aria-selected', selected ? 'true' : 'false');
+        t.setAttribute('tabindex', selected ? '0' : '-1');
+      });
     }
 
     function initTabs() {
