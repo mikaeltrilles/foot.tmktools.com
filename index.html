@@ -1687,11 +1687,10 @@
       if (!tabs.length) return;
       const counts = { live: 0, upcoming: 0, finished: 0 };
       (matches || []).forEach(m => { counts[getMatchEffectiveStatus(m)]++; });
-      let best = 'live';
+      // Au chargement : live si match en cours, sinon à venir
+      let best = 'upcoming';
       if (counts.live > 0) best = 'live';
       else if (counts.upcoming > 0) best = 'upcoming';
-      else if (counts.finished > 0) best = 'finished';
-      else best = 'upcoming';
       tabs.forEach(t => {
         const selected = t.dataset.filter === best;
         t.setAttribute('aria-selected', selected ? 'true' : 'false');
@@ -1807,8 +1806,10 @@
       renderNextWorldCups();
       updateCountdowns();
       await fetchAndRenderMatches(currentWC);
-      selectBestTab(chartMatches);
       initTabs();
+      selectBestTab(chartMatches);
+      // Forcer un re-render après sélection de l'onglet par défaut pour appliquer le bon filtre
+      renderMatches(chartMatches, currentWC);
       initTheme();
       initScrollReveal();
       updateFooterTimes();
