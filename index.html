@@ -543,8 +543,8 @@
       </h2>
 
       <div class="tabs" role="tablist" aria-label="Filtrer les matchs">
-        <button class="tab" role="tab" aria-selected="true" data-filter="live" tabindex="0">En cours</button>
-        <button class="tab" role="tab" aria-selected="false" data-filter="upcoming" tabindex="-1">À venir</button>
+        <button class="tab" role="tab" aria-selected="false" data-filter="live" tabindex="-1">En cours</button>
+        <button class="tab" role="tab" aria-selected="true" data-filter="upcoming" tabindex="0">À venir</button>
         <button class="tab" role="tab" aria-selected="false" data-filter="finished" tabindex="-1">Terminés</button>
       </div>
 
@@ -962,33 +962,21 @@
     let wc26Scorers = new Map(); // buteurs depuis worldcup26.ir
 
     async function fetchWorldcup26Scorers() {
+      // Si on a déjà des données buteurs fraîches, ne pas rafraîchir inutilement
+      if (wc26Scorers && wc26Scorers.size > 0) return;
+      // Utiliser le cache partagé avec fetchWorldcup26Matches
+      const cached = getWc26Cache();
+      if (cached && cached.games) {
+        parseWorldcup26Payload(cached);
+        return;
+      }
       try {
         const res = await fetch('https://worldcup26.ir/get/games', { cache: 'no-store' });
         if (!res.ok) return;
         const data = await res.json();
         if (!data.games || !Array.isArray(data.games)) return;
-        const newMap = new Map();
-        data.games.forEach(g => {
-          const home = g.home_team_name_en;
-          const away = g.away_team_name_en;
-          if (!home || !away) return;
-          const key = `${home}|${away}`;
-          const scorers = [];
-          // Parse home_scorers
-          const homeScorersRaw = g.home_scorers;
-          if (homeScorersRaw && homeScorersRaw !== 'null') {
-            const items = extractScorerItems(String(homeScorersRaw));
-            items.forEach(s => scorers.push({ raw: s, side: 'home' }));
-          }
-          // Parse away_scorers
-          const awayScorersRaw = g.away_scorers;
-          if (awayScorersRaw && awayScorersRaw !== 'null') {
-            const items = extractScorerItems(String(awayScorersRaw));
-            items.forEach(s => scorers.push({ raw: s, side: 'away' }));
-          }
-          newMap.set(key, scorers);
-        });
-        wc26Scorers = newMap;
+        setWc26Cache(data);
+        parseWorldcup26Payload(data);
       } catch (e) {
         // Silencieux si l'API externe échoue
       }
@@ -1032,34 +1020,91 @@
     function getScorersForMatch(m) {
       const home = m.homeTeam?.name;
       const away = m.awayTeam?.name;
+      if (!home || !away) return [];
       // Essayer d'abord worldcup26.ir
       const wcKey = `${home}|${away}`;
       const wcData = wc26Scorers.get(wcKey);
       if (wcData && wcData.length) {
         return wcData.map(g => {
+          // Format déjà parsé (goals) : g.scorer est une string
+          if (typeof g.scorer === 'string') {
+            return { minute: g.minute ?? '', scorer: g.scorer, side: g.side };
+          }
+          // Format brut (fetchWorldcup26Scorers) : g.raw à parser
           const parsed = parseScorerString(g.raw);
           return parsed ? { minute: parsed.minute, scorer: parsed.scorer, side: g.side } : null;
-        }).filter(Boolean);
+        }).filter(g => g && g.scorer && g.scorer !== 'undefined');
       }
-      // Fallback API football-data v4
+      // Fallback API football-data v4 ou goals déjà parsés de worldcup26.ir
       if (m.goals && m.goals.length) {
-        return m.goals.map(g => ({
-          minute: g.minute ?? g.time ?? '',
-          scorer: g.scorer?.name ?? g.player?.name ?? '',
-          side: (g.team?.name ?? g.team) === m.homeTeam?.name ? 'home' : 'away'
-        })).filter(g => g.scorer);
+        return m.goals.map(g => {
+          // Format worldcup26.ir : g.scorer est une string et g.side est déjà défini
+          if (typeof g.scorer === 'string') {
+            return {
+              minute: g.minute ?? g.time ?? '',
+              scorer: g.scorer,
+              side: g.side || ((g.team?.name ?? g.team) === home ? 'home' : 'away')
+            };
+          }
+          // Format football-data v4
+          return {
+            minute: g.minute ?? g.time ?? '',
+            scorer: g.scorer?.name ?? g.player?.name ?? '',
+            side: (g.team?.name ?? g.team) === home ? 'home' : 'away'
+          };
+        }).filter(g => g.scorer && g.scorer !== 'undefined');
       }
       // Fallback statique
       const fb = STATIC_FALLBACK_GOALS[m.id] || [];
-      return fb.map(g => ({ minute: g.minute, scorer: g.scorer, side: g.team }));
+      return fb.map(g => ({ minute: g.minute, scorer: g.scorer, side: g.team })).filter(g => g.scorer && g.scorer !== 'undefined');
+    }
+
+    function getWc26Cache() {
+      try {
+        const raw = localStorage.getItem('wc26-cache');
+        if (!raw) return null;
+        const parsed = JSON.parse(raw);
+        const ttl = 60 * 1000; // 60 secondes
+        if (Date.now() - parsed.ts > ttl) return null;
+        return parsed.data;
+      } catch (e) {
+        return null;
+      }
+    }
+
+    function setWc26Cache(data) {
+      try {
+        localStorage.setItem('wc26-cache', JSON.stringify({ ts: Date.now(), data }));
+      } catch (e) { /* ignore */ }
     }
 
     async function fetchWorldcup26Matches() {
+      // Utiliser le cache récent pour éviter les 429
+      const cached = getWc26Cache();
+      if (cached && cached.games && Array.isArray(cached.games)) {
+        return parseWorldcup26Payload(cached);
+      }
       try {
         const res = await fetch('https://worldcup26.ir/get/games', { cache: 'no-store' });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
         if (!data.games || !Array.isArray(data.games)) throw new Error('invalid payload');
+        setWc26Cache(data);
+        return parseWorldcup26Payload(data);
+      } catch (e) {
+        console.warn('[worldcup26] fetch matches failed:', e);
+        // En cas d'erreur, utiliser le cache même périmé
+        if (cached && cached.games) {
+          console.warn('[worldcup26] using stale cache');
+          return parseWorldcup26Payload(cached);
+        }
+        return null;
+      }
+    }
+
+    function parseWorldcup26Payload(data) {
+      try {
+        if (!data.games || !Array.isArray(data.games)) return null;
         // Met à jour aussi le cache des buteurs
         const scorersMap = new Map();
         const matches = data.games.map(g => {
@@ -1112,7 +1157,7 @@
         wc26Scorers = scorersMap;
         return matches;
       } catch (e) {
-        console.warn('[worldcup26] fetch matches failed:', e);
+        console.warn('[worldcup26] parse payload failed:', e);
         return null;
       }
     }
@@ -2009,13 +2054,13 @@
       selectBestTab(chartMatches);
       // Forcer un re-render après sélection de l'onglet par défaut pour appliquer le bon filtre
       renderMatches(chartMatches, currentWC);
-      renderRankingsAndScorers();
+      try { renderRankingsAndScorers(); } catch (e) { console.warn('renderRankingsAndScorers failed:', e); }
       initTheme();
       initScrollReveal();
       updateFooterTimes();
 
-      // Pendant la CdM 2026, worldcup26.ir rate-limite : rafraîchir toutes les 60s max
-      const intervalMs = currentWC.isLive ? (currentWC.year === 2026 ? 60000 : 15000) : currentWC.isSoon ? 300000 : 3600000;
+      // Pendant la CdM 2026, worldcup26.ir rate-limite : rafraîchir toutes les 2 min max
+      const intervalMs = currentWC.isLive ? (currentWC.year === 2026 ? 120000 : 15000) : currentWC.isSoon ? 300000 : 3600000;
       if (refreshInterval) clearInterval(refreshInterval);
       refreshInterval = setInterval(async () => {
         currentWC = await autoDiscoverWorldCup();
