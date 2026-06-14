@@ -1186,8 +1186,9 @@
       const activeFilter = document.querySelector('.tab[aria-selected="true"]')?.dataset.filter || 'all';
       const filtered = matches.filter(m => {
         const effective = getMatchEffectiveStatus(m);
+        // L'onglet "Terminés" affiche uniquement les matchs officiellement terminés (pas le fallback temporel)
+        if (activeFilter === 'finished') return m.status === 'FINISHED' || m.status === 'AWARDED';
         if (activeFilter === 'live') return effective === 'live';
-        if (activeFilter === 'finished') return effective === 'finished';
         if (activeFilter === 'upcoming') return effective === 'upcoming';
         return true;
       });
