@@ -142,16 +142,23 @@
     .brand svg { width: 36px; height: 36px; flex-shrink: 0; }
     .brand-title {
       font-family: var(--font-display);
-      font-size: var(--text-lg);
+      font-size: var(--text-base);
       font-weight: 700;
       letter-spacing: -0.02em;
       white-space: nowrap;
     }
+    @media (min-width: 480px) {
+      .brand-title { font-size: var(--text-lg); }
+    }
     .header-meta {
       display: flex;
       align-items: center;
-      gap: var(--space-4);
+      gap: var(--space-2);
       flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+    @media (min-width: 480px) {
+      .header-meta { gap: var(--space-4); }
     }
     .live-badge {
       display: inline-flex;
@@ -215,10 +222,13 @@
 
     /* Sections */
     .section {
-      padding: var(--space-12) 0;
+      padding: var(--space-8) 0;
       opacity: 0;
       transform: translateY(20px);
       transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+    @media (min-width: 768px) {
+      .section { padding: var(--space-12) 0; }
     }
     .section.visible { opacity: 1; transform: translateY(0); }
     .section-title {
@@ -235,8 +245,11 @@
       background: var(--color-surface);
       border: 1px solid var(--color-border);
       border-radius: var(--radius-lg);
-      padding: var(--space-6);
+      padding: var(--space-4);
       transition: transform 0.2s, box-shadow 0.2s;
+    }
+    @media (min-width: 768px) {
+      .card { padding: var(--space-6); }
     }
     .card:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(0,0,0,0.25); }
     [data-theme="light"] .card:hover { box-shadow: 0 12px 32px rgba(0,0,0,0.08); }
@@ -251,17 +264,30 @@
       color: var(--color-text-muted);
     }
 
-    /* Grid utilities */
+    /* Grid utilities — mobile-first */
     .grid { display: grid; gap: var(--space-4); }
-    .grid-1 { grid-template-columns: 1fr; }
-    .grid-2 { grid-template-columns: repeat(2, 1fr); }
-    .grid-3 { grid-template-columns: repeat(3, 1fr); }
-    .grid-4 { grid-template-columns: repeat(4, 1fr); }
-    .grid-6 { grid-template-columns: repeat(6, 1fr); }
-    .grid-8 { grid-template-columns: repeat(8, 1fr); }
-    @media (max-width: 1024px) { .grid-8, .grid-6 { grid-template-columns: repeat(4, 1fr); } }
-    @media (max-width: 768px) { .grid-4, .grid-6, .grid-8 { grid-template-columns: repeat(2, 1fr); } }
-    @media (max-width: 480px) { .grid-2, .grid-3, .grid-4, .grid-6, .grid-8 { grid-template-columns: 1fr; } }
+    .grid-1,
+    .grid-2,
+    .grid-3,
+    .grid-4,
+    .grid-6,
+    .grid-8 { grid-template-columns: 1fr; }
+    @media (min-width: 480px) {
+      .grid-2,
+      .grid-3,
+      .grid-4 { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (min-width: 768px) {
+      .grid-4,
+      .grid-6,
+      .grid-8 { grid-template-columns: repeat(3, 1fr); }
+    }
+    @media (min-width: 1024px) {
+      .grid-3 { grid-template-columns: repeat(3, 1fr); }
+      .grid-4 { grid-template-columns: repeat(4, 1fr); }
+      .grid-6 { grid-template-columns: repeat(6, 1fr); }
+      .grid-8 { grid-template-columns: repeat(8, 1fr); }
+    }
 
     /* PC/Desktop large screens */
     @media (min-width: 1200px) {
@@ -281,14 +307,20 @@
       background: var(--color-surface-2);
       border: 1px solid var(--color-border);
       border-radius: var(--radius-lg);
-      padding: var(--space-6);
+      padding: var(--space-4);
+    }
+    @media (min-width: 768px) {
+      .host-card { padding: var(--space-6); }
     }
     .host-card .flag { width: 48px; height: 32px; border-radius: 3px; display: inline-block; vertical-align: middle; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.3); }
     .host-card .flag img { width: 100%; height: 100%; object-fit: cover; }
     .host-card .name { font-family: var(--font-display); font-weight: 700; font-size: var(--text-lg); margin-top: var(--space-3); }
     .host-card .cities { font-size: var(--text-sm); color: var(--color-text-muted); margin-top: var(--space-2); }
 
-    .stadium-card { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: var(--space-4); }
+    .stadium-card { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: var(--space-3); }
+    @media (min-width: 768px) {
+      .stadium-card { padding: var(--space-4); }
+    }
     .stadium-card .stadium-name { font-weight: 600; font-size: var(--text-sm); }
     .stadium-card .stadium-info { font-size: var(--text-xs); color: var(--color-text-muted); margin-top: var(--space-1); }
     .stadium-card .capacity { font-size: var(--text-xs); color: var(--color-primary); font-weight: 600; margin-top: var(--space-1); }
@@ -313,8 +345,11 @@
       background: var(--color-surface);
       border: 1px solid var(--color-border);
       border-radius: var(--radius-lg);
-      padding: var(--space-4) var(--space-6);
+      padding: var(--space-4);
       margin-bottom: var(--space-6);
+    }
+    @media (min-width: 768px) {
+      .group-section { padding: var(--space-4) var(--space-6); }
     }
     .group-section:last-child { margin-bottom: 0; }
     .teams-pc-grid {
@@ -341,9 +376,12 @@
       background: var(--color-surface);
       border: 1px solid var(--color-border);
       border-radius: var(--radius-lg);
-      padding: var(--space-6);
+      padding: var(--space-4);
       transition: transform 0.2s, box-shadow 0.2s;
       position: relative;
+    }
+    @media (min-width: 768px) {
+      .match-card { padding: var(--space-6); }
     }
     .match-card:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(0,0,0,0.2); }
     .match-card.flash { animation: scoreFlash 1s ease; }
@@ -380,13 +418,23 @@
       color: #ff5e52;
       border: 1px solid rgba(231,76,60,0.3);
     }
-    .match-teams { display: flex; align-items: center; justify-content: center; gap: var(--space-4); flex-wrap: wrap; }
-    .match-team { display: flex; flex-direction: column; align-items: center; gap: var(--space-2); flex: 1; min-width: 120px; }
-    .match-team .flag { width: 56px; height: 40px; border-radius: 4px; display: inline-block; vertical-align: middle; overflow: hidden; box-shadow: 0 2px 6px rgba(0,0,0,0.3); }
+    .match-teams { display: flex; align-items: center; justify-content: center; gap: var(--space-2); flex-wrap: wrap; }
+    .match-team { display: flex; flex-direction: column; align-items: center; gap: var(--space-2); flex: 1; min-width: 100px; }
+    .match-team .flag { width: 44px; height: 32px; border-radius: 4px; display: inline-block; vertical-align: middle; overflow: hidden; box-shadow: 0 2px 6px rgba(0,0,0,0.3); }
     .match-team .flag img { width: 100%; height: 100%; object-fit: cover; }
-    .match-team .name { font-weight: 600; font-size: var(--text-sm); text-align: center; }
-    .match-score { font-family: var(--font-display); font-size: var(--text-2xl); font-weight: 800; color: var(--color-primary); min-width: 80px; text-align: center; }
-    .match-meta { text-align: center; margin-top: var(--space-4); font-size: var(--text-xs); color: var(--color-text-muted); }
+    .match-team .name { font-weight: 600; font-size: var(--text-xs); text-align: center; }
+    .match-score { font-family: var(--font-display); font-size: var(--text-xl); font-weight: 800; color: var(--color-primary); min-width: 64px; text-align: center; }
+    @media (min-width: 480px) {
+      .match-teams { gap: var(--space-4); }
+      .match-team { min-width: 120px; }
+      .match-team .flag { width: 56px; height: 40px; }
+      .match-team .name { font-size: var(--text-sm); }
+      .match-score { font-size: var(--text-2xl); min-width: 80px; }
+    }
+    .match-meta { text-align: center; margin-top: var(--space-3); font-size: 11px; color: var(--color-text-muted); }
+    @media (min-width: 480px) {
+      .match-meta { margin-top: var(--space-4); font-size: var(--text-xs); }
+    }
     .match-meta .time-paris { color: var(--color-text); font-weight: 500; }
     .match-meta-row { display: block; margin: var(--space-1) 0; }
     .match-meta-row:first-child { margin-top: 0; }
@@ -407,7 +455,10 @@
 
     /* Classements */
     .standings-table { width: 100%; border-collapse: collapse; font-size: var(--text-sm); }
-    .standings-table th, .standings-table td { padding: var(--space-2) var(--space-3); text-align: center; }
+    .standings-table th, .standings-table td { padding: var(--space-1) var(--space-2); text-align: center; font-size: 12px; }
+    @media (min-width: 768px) {
+      .standings-table th, .standings-table td { padding: var(--space-2) var(--space-3); font-size: var(--text-sm); }
+    }
     .standings-table th:first-child, .standings-table td:first-child { text-align: left; }
     .standings-table td:nth-child(2) { text-align: left; }
     .standings-table .points { color: var(--color-primary); font-weight: 700; }
@@ -415,9 +466,12 @@
 
     /* Cartes buteurs */
     .scorer-card {
-      display: flex; align-items: center; gap: var(--space-4);
+      display: flex; align-items: center; gap: var(--space-3);
       background: var(--color-surface); border: 1px solid var(--color-border);
-      border-radius: var(--radius-md); padding: var(--space-3) var(--space-4);
+      border-radius: var(--radius-md); padding: var(--space-2) var(--space-3);
+    }
+    @media (min-width: 768px) {
+      .scorer-card { gap: var(--space-4); padding: var(--space-3) var(--space-4); }
     }
     .scorer-rank {
       width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;
@@ -440,7 +494,10 @@
 
     /* Table */
     .data-table { width: 100%; border-collapse: collapse; font-size: var(--text-sm); }
-    .data-table th, .data-table td { padding: var(--space-3) var(--space-4); text-align: left; border-bottom: 1px solid var(--color-border); }
+    .data-table th, .data-table td { padding: var(--space-2) var(--space-3); text-align: left; border-bottom: 1px solid var(--color-border); }
+    @media (min-width: 768px) {
+      .data-table th, .data-table td { padding: var(--space-3) var(--space-4); }
+    }
     .data-table th { font-family: var(--font-display); font-weight: 600; color: var(--color-text-muted); font-size: var(--text-xs); text-transform: uppercase; letter-spacing: 0.05em; }
     .data-table tr:hover td { background: var(--color-surface-2); }
     .data-table .stars { color: var(--color-gold); letter-spacing: 2px; }
@@ -454,33 +511,44 @@
       background: var(--color-surface);
       border: 1px solid var(--color-border);
       border-radius: var(--radius-lg);
-      padding: var(--space-6);
+      padding: var(--space-4);
       transition: transform 0.2s, border-color 0.2s;
+    }
+    @media (min-width: 768px) {
+      .wc-card { padding: var(--space-6); }
     }
     .wc-card:hover { transform: translateY(-4px); border-color: var(--color-primary); }
     .wc-card.wc-active { border-color: var(--color-live); background: rgba(231,76,60,0.05); }
     .wc-year { font-family: var(--font-display); font-size: var(--text-xl); font-weight: 800; }
     .wc-hosts { font-size: var(--text-sm); color: var(--color-text-muted); margin-top: var(--space-2); }
     .wc-countdown { margin-top: var(--space-4); font-family: var(--font-display); font-weight: 700; }
-    .countdown-timer { display: flex; gap: var(--space-3); }
-    .cd-unit { display: flex; flex-direction: column; align-items: center; background: var(--color-surface-2); padding: var(--space-2) var(--space-3); border-radius: var(--radius-md); min-width: 56px; }
+    .countdown-timer { display: flex; gap: var(--space-2); flex-wrap: wrap; justify-content: center; }
+    .cd-unit { display: flex; flex-direction: column; align-items: center; background: var(--color-surface-2); padding: var(--space-1) var(--space-2); border-radius: var(--radius-md); min-width: 48px; }
+    @media (min-width: 480px) {
+      .countdown-timer { gap: var(--space-3); }
+      .cd-unit { padding: var(--space-2) var(--space-3); min-width: 56px; }
+    }
     .cd-unit small { font-size: var(--text-xs); color: var(--color-text-faint); font-weight: 400; }
     .badge-done { color: var(--color-primary); font-size: var(--text-sm); }
 
     /* Footer */
     .site-footer {
       border-top: 1px solid var(--color-border);
-      padding: var(--space-8) 0;
-      margin-top: var(--space-8);
+      padding: var(--space-6) 0;
+      margin-top: var(--space-6);
       text-align: center;
       color: var(--color-text-muted);
       font-size: var(--text-xs);
+    }
+    @media (min-width: 768px) {
+      .site-footer { padding: var(--space-8) 0; margin-top: var(--space-8); }
     }
     .site-footer a { color: var(--color-text-muted); }
     .site-footer a:hover { color: var(--color-primary); }
 
     /* Chart container */
-    .chart-container { position: relative; height: 320px; margin-top: var(--space-6); }
+    .chart-container { position: relative; height: 260px; margin-top: var(--space-6); }
+    @media (min-width: 480px) { .chart-container { height: 320px; } }
     @media (min-width: 768px) { .chart-container { height: 400px; } }
 
     /* Reduced motion */
@@ -973,7 +1041,7 @@
         return;
       }
       try {
-        const res = await fetch('https://worldcup26.ir/get/games', { cache: 'no-store' });
+        const res = await fetchWithTimeout('https://worldcup26.ir/get/games', { cache: 'no-store' }, 6000);
         if (!res.ok) return;
         const data = await res.json();
         if (!data.games || !Array.isArray(data.games)) return;
@@ -1080,28 +1148,49 @@
       } catch (e) { /* ignore */ }
     }
 
+    async function fetchWithTimeout(url, options, timeoutMs = 8000) {
+      const controller = new AbortController();
+      const id = setTimeout(() => controller.abort(), timeoutMs);
+      try {
+        const res = await fetch(url, { ...options, signal: controller.signal });
+        clearTimeout(id);
+        return res;
+      } catch (e) {
+        clearTimeout(id);
+        throw e;
+      }
+    }
+
     async function fetchWorldcup26Matches() {
       // Utiliser le cache récent pour éviter les 429
       const cached = getWc26Cache();
       if (cached && cached.games && Array.isArray(cached.games)) {
         return parseWorldcup26Payload(cached);
       }
-      try {
-        const res = await fetch('https://worldcup26.ir/get/games', { cache: 'no-store' });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const data = await res.json();
-        if (!data.games || !Array.isArray(data.games)) throw new Error('invalid payload');
-        setWc26Cache(data);
-        return parseWorldcup26Payload(data);
-      } catch (e) {
-        console.warn('[worldcup26] fetch matches failed:', e);
-        // En cas d'erreur, utiliser le cache même périmé
-        if (cached && cached.games) {
-          console.warn('[worldcup26] using stale cache');
-          return parseWorldcup26Payload(cached);
+      const url = 'https://worldcup26.ir/get/games';
+      const retries = 2;
+      let lastError = null;
+      for (let i = 0; i <= retries; i++) {
+        try {
+          if (i > 0) await new Promise(r => setTimeout(r, 500 * i));
+          const res = await fetchWithTimeout(url, { cache: 'no-store' }, 8000);
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          const data = await res.json();
+          if (!data.games || !Array.isArray(data.games)) throw new Error('invalid payload');
+          setWc26Cache(data);
+          return parseWorldcup26Payload(data);
+        } catch (e) {
+          lastError = e;
+          console.warn(`[worldcup26] fetch matches attempt ${i + 1} failed:`, e.message || e);
         }
-        return null;
       }
+      // En cas d'erreur, utiliser le cache même périmé
+      if (cached && cached.games) {
+        console.warn('[worldcup26] using stale cache after network failure');
+        return parseWorldcup26Payload(cached);
+      }
+      console.error('[worldcup26] fetch matches failed:', lastError);
+      return null;
     }
 
     function parseWorldcup26Payload(data) {
@@ -1215,7 +1304,8 @@
           hour: '2-digit', minute: '2-digit'
         }).format(date);
         const paris = new Intl.DateTimeFormat('fr-FR', {
-          timeZone: 'Europe/Paris', hour: '2-digit', minute: '2-digit'
+          timeZone: 'Europe/Paris', weekday: 'long', day: 'numeric', month: 'long',
+          hour: '2-digit', minute: '2-digit'
         }).format(date);
         return { local, paris, date };
       } catch (e) {
@@ -1855,6 +1945,14 @@
       }
     }
 
+    function isLocalhostOrigin() {
+      try {
+        return /^(localhost|127\.0\.0\.1)(:\d+)?$/.test(location.hostname);
+      } catch (e) {
+        return false;
+      }
+    }
+
     async function fetchAndRenderMatches(wc) {
       if (!wc) return;
       const fallback = STATIC_FALLBACK_MATCHES[wc.year] || STATIC_FALLBACK_MATCHES[2026] || [];
@@ -1872,11 +1970,22 @@
           updateLastRefresh(false, 'worldcup26.ir');
           return;
         }
+        // worldcup26.ir inaccessible : ne pas tenter football-data.org en production (CORS),
+        // utiliser directement le fallback statique 2026.
+        const now = Date.now();
+        fallback.forEach(m => lastRefreshTime.set(m.id, now));
+        chartMatches = fallback;
+        renderMatches(fallback, wc);
+        initCharts();
+        renderRankingsAndScorers();
+        updateLastRefresh(true);
+        return;
       }
 
       // Récupérer les buteurs depuis worldcup26.ir en parallèle (fallback si fetchWorldcup26Matches n'a pas tourné)
       await fetchWorldcup26Scorers();
-      if (!API_KEY) {
+      // La clé d'API football-data.org gratuite n'autorise que localhost en CORS.
+      if (!API_KEY || !isLocalhostOrigin()) {
         const now = Date.now();
         fallback.forEach(m => lastRefreshTime.set(m.id, now));
         chartMatches = fallback;
@@ -1930,8 +2039,14 @@
       const el = document.getElementById('footer-times');
       if (!el) return;
       const now = new Date();
-      const paris = new Intl.DateTimeFormat('fr-FR', { timeZone: 'Europe/Paris', hour: '2-digit', minute: '2-digit', second: '2-digit' }).format(now);
-      const utc = new Intl.DateTimeFormat('fr-FR', { timeZone: 'UTC', hour: '2-digit', minute: '2-digit', second: '2-digit' }).format(now);
+      const paris = new Intl.DateTimeFormat('fr-FR', {
+        timeZone: 'Europe/Paris', weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
+        hour: '2-digit', minute: '2-digit', second: '2-digit'
+      }).format(now);
+      const utc = new Intl.DateTimeFormat('fr-FR', {
+        timeZone: 'UTC', weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
+        hour: '2-digit', minute: '2-digit', second: '2-digit'
+      }).format(now);
       el.textContent = `Heure actuelle Paris : ${paris} · UTC : ${utc}`;
     }
 
