@@ -11,7 +11,8 @@ Site de suivi live de la Coupe du Monde de Football FIFA 2026 et au-delà.
 - Détection automatique de l'édition en cours (2026, 2030, 2034...)
 
 ## Données
-- [football-data.org](https://www.football-data.org) API v4
+- Coupe du Monde 2026 : [worldcup26.ir](https://worldcup26.ir) API (données live, scores et buteurs)
+- Autres éditions : [football-data.org](https://www.football-data.org) API v4
 - Données statiques embarquées en fallback
 
 ## Déploiement

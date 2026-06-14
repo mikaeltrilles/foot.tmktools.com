@@ -648,7 +648,7 @@
 
   <footer class="site-footer">
     <div class="container">
-      <p>foot.tmktools.com — Données : <a href="https://www.football-data.org" target="_blank" rel="noopener">football-data.org</a> · <a href="https://www.fifa.com" target="_blank" rel="noopener">FIFA.com</a></p>
+      <p>foot.tmktools.com — Données : <a href="https://worldcup26.ir" target="_blank" rel="noopener">worldcup26.ir</a> (CdM 2026) · <a href="https://www.football-data.org" target="_blank" rel="noopener">football-data.org</a> · <a href="https://www.fifa.com" target="_blank" rel="noopener">FIFA.com</a></p>
       <p class="mt-4" id="footer-times">Heure actuelle Paris : — · UTC : —</p>
       <p class="mt-4"><a href="https://github.com/mikaeltrilles/foot.tmktools.com" target="_blank" rel="noopener">GitHub</a></p>
     </div>
@@ -726,6 +726,26 @@
       'Estadio Akron': 'Mexique',
       'BMO Field': 'Canada',
       'BC Place': 'Canada',
+    };
+
+    // Mapping des stadium_id de worldcup26.ir vers les noms internes
+    const STADIUM_ID_TO_NAME = {
+      '1': 'Estadio Azteca',
+      '2': 'Estadio Akron',
+      '3': 'Estadio BBVA',
+      '4': 'AT&T Stadium',
+      '5': 'NRG Stadium',
+      '6': 'Arrowhead Stadium',
+      '7': 'Mercedes-Benz Stadium',
+      '8': 'Hard Rock Stadium',
+      '9': 'Gillette Stadium',
+      '10': 'Lincoln Financial Field',
+      '11': 'MetLife Stadium',
+      '12': 'BMO Field',
+      '13': 'BC Place',
+      '14': 'Lumen Field',
+      '15': 'Levi\'s Stadium',
+      '16': 'SoFi Stadium',
     };
 
     let currentWC = null;
@@ -980,6 +1000,69 @@
       return fb.map(g => ({ minute: g.minute, scorer: g.scorer, side: g.team }));
     }
 
+    async function fetchWorldcup26Matches() {
+      try {
+        const res = await fetch('https://worldcup26.ir/get/games', { cache: 'no-store' });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        if (!data.games || !Array.isArray(data.games)) throw new Error('invalid payload');
+        // Met à jour aussi le cache des buteurs
+        const scorersMap = new Map();
+        const matches = data.games.map(g => {
+          const home = g.home_team_name_en || 'TBD';
+          const away = g.away_team_name_en || 'TBD';
+          const venue = STADIUM_ID_TO_NAME[String(g.stadium_id)] || 'Stade à confirmer';
+          const utcDate = parseWc26DateToIso(g.local_date, g.stadium_id) || new Date().toISOString();
+          const stage = mapWc26TypeToStage(g.type);
+          const groupLetter = (g.group || '').toString().trim();
+          const groupLabel = stage === 'GROUP_STAGE' && groupLetter ? `Groupe ${groupLetter.toUpperCase()}` : groupLetter;
+          const homeScoreRaw = g.home_score;
+          const awayScoreRaw = g.away_score;
+          const finished = (g.finished || '').toString().toUpperCase() === 'TRUE';
+          const elapsed = (g.time_elapsed || '').toString().toLowerCase();
+          const isNotStarted = !finished && elapsed === 'notstarted';
+          const homeScore = isNotStarted || homeScoreRaw === null || homeScoreRaw === undefined || homeScoreRaw === '' ? null : Number(homeScoreRaw);
+          const awayScore = isNotStarted || awayScoreRaw === null || awayScoreRaw === undefined || awayScoreRaw === '' ? null : Number(awayScoreRaw);
+          let status = 'SCHEDULED';
+          if (finished) status = 'FINISHED';
+          else if (elapsed === 'live' || (!isNaN(Number(elapsed)) && elapsed !== '')) status = 'IN_PLAY';
+
+          // Buteurs pour ce match
+          const matchGoals = [];
+          const addScorers = (raw, side) => {
+            if (!raw || raw === 'null') return;
+            extractScorerItems(String(raw)).forEach(s => {
+              const parsed = parseScorerString(s);
+              if (parsed) matchGoals.push({ minute: parsed.minute, scorer: parsed.scorer, team: { name: side === 'home' ? home : away }, side });
+            });
+          };
+          addScorers(g.home_scorers, 'home');
+          addScorers(g.away_scorers, 'away');
+          scorersMap.set(`${home}|${away}`, matchGoals);
+
+          return {
+            id: g.id || `${home}-${away}`,
+            homeTeam: { name: home, shortName: home.slice(0, 3).toUpperCase(), tla: home.slice(0, 3).toUpperCase() },
+            awayTeam: { name: away, shortName: away.slice(0, 3).toUpperCase(), tla: away.slice(0, 3).toUpperCase() },
+            score: { fullTime: { home: homeScore, away: awayScore }, halfTime: { home: null, away: null } },
+            goals: matchGoals,
+            status,
+            finished,
+            time_elapsed: elapsed,
+            utcDate,
+            stage,
+            group: groupLabel,
+            venue,
+          };
+        });
+        wc26Scorers = scorersMap;
+        return matches;
+      } catch (e) {
+        console.warn('[worldcup26] fetch matches failed:', e);
+        return null;
+      }
+    }
+
     function toParisTime(utcString) {
       try {
         return new Intl.DateTimeFormat('fr-FR', {
@@ -997,6 +1080,29 @@
           timeZone: tz, hour: '2-digit', minute: '2-digit'
         }).format(new Date(utcString));
       } catch (e) { return '--:--'; }
+    }
+
+    // Convertit une date/heure locale de stade (MM/DD/YYYY HH:mm) en ISO UTC
+    function parseWc26DateToIso(localDateStr, stadiumId) {
+      const match = (localDateStr || '').match(/^(\d{2})\/(\d{2})\/(\d{4})\s+(\d{2}):(\d{2})$/);
+      if (!match) return null;
+      const [, month, day, year, hour, minute] = match;
+      const venue = STADIUM_ID_TO_NAME[String(stadiumId)] || 'UTC';
+      const tz = STADIUM_TIMEZONES[venue] || 'UTC';
+      // 1) Heure iso comme si c'était UTC
+      const utcCandidate = new Date(Date.UTC(+year, +month - 1, +day, +hour, +minute));
+      // 2) Quelle heure locale du stade cela représente-t-il ?
+      const tzDateStr = new Intl.DateTimeFormat('en-US', {
+        timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit',
+        hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false
+      }).format(utcCandidate);
+      const parsedTz = tzDateStr.match(/^(\d{2})\/(\d{2})\/(\d{4}),\s+(\d{2}):(\d{2}):(\d{2})$/);
+      if (!parsedTz) return utcCandidate.toISOString();
+      const [, tm, td, ty, th, tmin] = parsedTz;
+      const candidateLocalMs = new Date(+ty, +tm - 1, +td, +th, +tmin).getTime();
+      const targetLocalMs = new Date(+year, +month - 1, +day, +hour, +minute).getTime();
+      const diffMs = targetLocalMs - candidateLocalMs;
+      return new Date(utcCandidate.getTime() + diffMs).toISOString();
     }
 
     function formatMatchDateTime(utcString, stadium) {
@@ -1017,8 +1123,11 @@
     }
 
     function getMatchEffectiveStatus(m) {
-      if (m.status === 'FINISHED' || m.status === 'AWARDED') return 'finished';
-      if (m.status === 'IN_PLAY' || m.status === 'PAUSED' || m.status === 'LIVE') return 'live';
+      // Priorité aux flags fiables de worldcup26.ir
+      if (m.finished === true || m.finished === 'TRUE' || m.status === 'FINISHED' || m.status === 'AWARDED') return 'finished';
+      const elapsed = m.time_elapsed;
+      const isWc26Live = elapsed && elapsed !== 'notstarted' && elapsed !== 'finished' && (elapsed === 'live' || !isNaN(Number(elapsed)));
+      if (isWc26Live || m.status === 'IN_PLAY' || m.status === 'PAUSED' || m.status === 'LIVE') return 'live';
       const now = new Date();
       const matchTime = new Date(m.utcDate);
       // Fallback temporel si l'API n'est pas à jour
@@ -1034,14 +1143,28 @@
     function formatPhase(stage) {
       const phases = {
         'GROUP_STAGE': 'Phase de groupes',
-        'ROUND_OF_32': 'Huitièmes de finale',
-        'ROUND_OF_16': 'Round of 16',
+        'ROUND_OF_32': '32èmes de finale',
+        'ROUND_OF_16': 'Huitièmes de finale',
         'QUARTER_FINALS': 'Quarts de finale',
         'SEMI_FINALS': 'Demi-finales',
         'THIRD_PLACE': 'Match pour la 3e place',
         'FINAL': 'Finale',
       };
       return phases[stage] || stage;
+    }
+
+    function mapWc26TypeToStage(type) {
+      const map = {
+        'group': 'GROUP_STAGE',
+        'r32': 'ROUND_OF_32',
+        'r16': 'ROUND_OF_16',
+        'quarter': 'QUARTER_FINALS',
+        'semi': 'SEMI_FINALS',
+        'third': 'THIRD_PLACE',
+        '3rd': 'THIRD_PLACE',
+        'final': 'FINAL',
+      };
+      return map[type] || type?.toUpperCase() || 'GROUP_STAGE';
     }
 
     function getGoalScorers(m) {
@@ -1186,8 +1309,7 @@
       const activeFilter = document.querySelector('.tab[aria-selected="true"]')?.dataset.filter || 'all';
       const filtered = matches.filter(m => {
         const effective = getMatchEffectiveStatus(m);
-        // L'onglet "Terminés" affiche uniquement les matchs officiellement terminés (pas le fallback temporel)
-        if (activeFilter === 'finished') return m.status === 'FINISHED' || m.status === 'AWARDED';
+        if (activeFilter === 'finished') return effective === 'finished';
         if (activeFilter === 'live') return effective === 'live';
         if (activeFilter === 'upcoming') return effective === 'upcoming';
         return true;
@@ -1233,7 +1355,8 @@
         const city = STADIUM_CITIES[venue] || '';
         const country = STADIUM_COUNTRIES[venue] || '';
         const { local: localDateTime, paris: parisTime } = formatMatchDateTime(m.utcDate, venue);
-        const minute = (isLive && m.minute) ? ` (${m.minute}')` : '';
+        const liveMinute = m.minute || (m.time_elapsed && !isNaN(Number(m.time_elapsed)) ? Number(m.time_elapsed) : '');
+        const minute = (isLive && liveMinute) ? ` (${liveMinute}')` : '';
         const dotClass = isLive ? 'status-dot live' : 'status-dot';
         const prevKey = `${m.id}-home`;
         const prevAwayKey = `${m.id}-away`;
@@ -1486,7 +1609,22 @@
     async function fetchAndRenderMatches(wc) {
       if (!wc) return;
       const fallback = STATIC_FALLBACK_MATCHES[wc.year] || STATIC_FALLBACK_MATCHES[2026] || [];
-      // Récupérer les buteurs depuis worldcup26.ir en parallèle
+
+      // Pour la Coupe du Monde 2026, privilégier l'API worldcup26.ir (plus fiable / live)
+      if (wc.year === 2026) {
+        const wc26Matches = await fetchWorldcup26Matches();
+        if (wc26Matches && wc26Matches.length) {
+          const now = Date.now();
+          wc26Matches.forEach(m => lastRefreshTime.set(m.id, now));
+          chartMatches = wc26Matches;
+          renderMatches(wc26Matches, wc);
+          initCharts();
+          updateLastRefresh(false, 'worldcup26.ir');
+          return;
+        }
+      }
+
+      // Récupérer les buteurs depuis worldcup26.ir en parallèle (fallback si fetchWorldcup26Matches n'a pas tourné)
       await fetchWorldcup26Scorers();
       if (!API_KEY) {
         const now = Date.now();
@@ -1525,12 +1663,13 @@
       }
     }
 
-    function updateLastRefresh(isFallback) {
+    function updateLastRefresh(isFallback, source) {
       const el = document.getElementById('last-update');
       if (!el) return;
       const now = new Date();
       const timeStr = now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
       if (isFallback) el.textContent = `Données statiques · ${timeStr}`;
+      else if (source) el.textContent = `Mis à jour via ${source} à ${timeStr}`;
       else el.textContent = `Mis à jour à ${timeStr}`;
     }
 
