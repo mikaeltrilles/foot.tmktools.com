@@ -2063,19 +2063,7 @@
 
       // Pour la Coupe du Monde 2026, privilégier l'API worldcup26.ir (plus fiable / live)
       if (wc.year === 2026) {
-        const wc26Matches = await fetchWorldcup26Matches();
-        if (wc26Matches && wc26Matches.length) {
-          const now = Date.now();
-          wc26Matches.forEach(m => lastRefreshTime.set(m.id, now));
-          chartMatches = wc26Matches;
-          renderMatches(wc26Matches, wc);
-          initCharts();
-          renderRankingsAndScorers();
-          updateLastRefresh(false, 'worldcup26.ir');
-          return;
-        }
-        // worldcup26.ir inaccessible : ne pas tenter football-data.org en production (CORS),
-        // utiliser directement le fallback statique 2026.
+        // 1) Afficher immédiatement le fallback statique pour ne pas laisser l'utilisateur attendre
         const now = Date.now();
         fallback.forEach(m => lastRefreshTime.set(m.id, now));
         chartMatches = fallback;
@@ -2083,6 +2071,17 @@
         initCharts();
         renderRankingsAndScorers();
         updateLastRefresh(true);
+
+        // 2) En arrière-plan, tenter de récupérer les données live
+        const wc26Matches = await fetchWorldcup26Matches();
+        if (wc26Matches && wc26Matches.length) {
+          wc26Matches.forEach(m => lastRefreshTime.set(m.id, now));
+          chartMatches = wc26Matches;
+          renderMatches(wc26Matches, wc);
+          initCharts();
+          renderRankingsAndScorers();
+          updateLastRefresh(false, 'worldcup26.ir');
+        }
         return;
       }
 
