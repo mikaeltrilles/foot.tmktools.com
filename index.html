@@ -673,9 +673,10 @@
       </div>
       <nav class="site-nav" aria-label="Navigation principale">
         <a href="#matches" class="nav-link">Matchs</a>
+        <a href="#buts" class="nav-link">Buts</a>
         <a href="#classements" class="nav-link">Classements</a>
-        <a href="#equipes" class="nav-link">Équipes</a>
         <a href="#buteurs" class="nav-link">Buteurs</a>
+        <a href="#equipes" class="nav-link">Équipes &amp; Pays organisateurs</a>
         <a href="#palmares" class="nav-link">Palmarès</a>
         <a href="#prochaines" class="nav-link">Prochaines</a>
       </nav>
@@ -705,6 +706,7 @@
         </div>
       </div>
 
+      <div id="buts" style="scroll-margin-top: 80px;"></div>
       <h3 style="font-size: var(--text-lg); margin-top: var(--space-12); margin-bottom: var(--space-4); color: var(--color-text-muted);">Buts marqués par équipe</h3>
       <div class="chart-container">
         <canvas id="goals-chart" aria-label="Graphique des buts marqués par équipe"></canvas>
@@ -2211,7 +2213,6 @@
       const now = new Date();
       const timeStr = now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
       if (isFallback) el.textContent = `Données statiques · ${timeStr}`;
-      else if (source) el.textContent = `Mis à jour via ${source} à ${timeStr}`;
       else el.textContent = `Mis à jour à ${timeStr}`;
     }
 
