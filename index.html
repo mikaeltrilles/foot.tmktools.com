@@ -366,10 +366,14 @@
       color: var(--color-text-muted); background: var(--color-surface-2);
       border: 1px solid var(--color-border); border-radius: var(--radius-md);
       padding: var(--space-2) var(--space-4); cursor: pointer; white-space: nowrap;
-      transition: all 0.2s;
+      transition: all 0.15s;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
     }
     .tab[aria-selected="true"] { background: var(--color-primary); color: #fff; border-color: var(--color-primary); }
     .tab:hover[aria-selected="false"] { background: var(--color-surface-offset); color: var(--color-text); }
+    .tab:active { transform: scale(0.96); }
     .tab:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 2px; }
 
     .match-card {
@@ -2163,10 +2167,14 @@
       const tabs = document.querySelectorAll('.tab');
       tabs.forEach(tab => {
         tab.addEventListener('click', () => {
+          // Mise à jour visuelle immédiate
           tabs.forEach(t => { t.setAttribute('aria-selected', 'false'); t.setAttribute('tabindex', '-1'); });
           tab.setAttribute('aria-selected', 'true');
           tab.setAttribute('tabindex', '0');
-          if (currentWC) fetchAndRenderMatches(currentWC);
+          // Re-render local uniquement, sans refetch réseau
+          if (currentWC && chartMatches.length) {
+            renderMatches(chartMatches, currentWC);
+          }
         });
       });
     }
@@ -2267,10 +2275,10 @@
       renderNextWorldCups();
       updateCountdowns();
       await fetchAndRenderMatches(currentWC);
-      initTabs();
       selectBestTab(chartMatches);
-      // Forcer un re-render après sélection de l'onglet par défaut pour appliquer le bon filtre
+      // Appliquer le filtre de l'onglet par défaut sélectionné
       renderMatches(chartMatches, currentWC);
+      initTabs();
       try { renderRankingsAndScorers(); } catch (e) { console.warn('renderRankingsAndScorers failed:', e); }
       initTheme();
       initScrollReveal();
