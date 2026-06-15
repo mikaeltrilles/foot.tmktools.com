@@ -942,6 +942,123 @@
       ],
     };
 
+    // Mapping des noms d'équipes EN (API worldcup26.ir) → FR + code pays
+    const TEAM_TRANSLATIONS = {
+      'Mexico': { fr: 'Mexique', code: 'mx' },
+      'South Africa': { fr: 'Afrique du Sud', code: 'za' },
+      'South Korea': { fr: 'Corée du Sud', code: 'kr' },
+      'Czechia': { fr: 'Tchéquie', code: 'cz' },
+      'Czech Republic': { fr: 'Tchéquie', code: 'cz' },
+      'Canada': { fr: 'Canada', code: 'ca' },
+      'Bosnia-Herzegovina': { fr: 'Bosnie-Herzégovine', code: 'ba' },
+      'Bosnia and Herzegovina': { fr: 'Bosnie-Herzégovine', code: 'ba' },
+      'Qatar': { fr: 'Qatar', code: 'qa' },
+      'Switzerland': { fr: 'Suisse', code: 'ch' },
+      'Brazil': { fr: 'Brésil', code: 'br' },
+      'Morocco': { fr: 'Maroc', code: 'ma' },
+      'Haiti': { fr: 'Haïti', code: 'ht' },
+      'Scotland': { fr: 'Écosse', code: 'gb-sct' },
+      'United States': { fr: 'États-Unis', code: 'us' },
+      'USA': { fr: 'États-Unis', code: 'us' },
+      'Paraguay': { fr: 'Paraguay', code: 'py' },
+      'Australia': { fr: 'Australie', code: 'au' },
+      'Turkey': { fr: 'Turquie', code: 'tr' },
+      'Germany': { fr: 'Allemagne', code: 'de' },
+      'Curaçao': { fr: 'Curaçao', code: 'cw' },
+      'Curacao': { fr: 'Curaçao', code: 'cw' },
+      "Côte d'Ivoire": { fr: "Côte d'Ivoire", code: 'ci' },
+      'Ivory Coast': { fr: "Côte d'Ivoire", code: 'ci' },
+      'Ecuador': { fr: 'Équateur', code: 'ec' },
+      'Netherlands': { fr: 'Pays-Bas', code: 'nl' },
+      'Holland': { fr: 'Pays-Bas', code: 'nl' },
+      'Japan': { fr: 'Japon', code: 'jp' },
+      'Sweden': { fr: 'Suède', code: 'se' },
+      'Tunisia': { fr: 'Tunisie', code: 'tn' },
+      'Belgium': { fr: 'Belgique', code: 'be' },
+      'Egypt': { fr: 'Égypte', code: 'eg' },
+      'Iran': { fr: 'Iran', code: 'ir' },
+      'New Zealand': { fr: 'Nouvelle-Zélande', code: 'nz' },
+      'Spain': { fr: 'Espagne', code: 'es' },
+      'Cape Verde Islands': { fr: 'Cap-Vert', code: 'cv' },
+      'Cape Verde': { fr: 'Cap-Vert', code: 'cv' },
+      'Cabo Verde': { fr: 'Cap-Vert', code: 'cv' },
+      'Saudi Arabia': { fr: 'Arabie Saoudite', code: 'sa' },
+      'Uruguay': { fr: 'Uruguay', code: 'uy' },
+      'France': { fr: 'France', code: 'fr' },
+      'Senegal': { fr: 'Sénégal', code: 'sn' },
+      'Iraq': { fr: 'Irak', code: 'iq' },
+      'Norway': { fr: 'Norvège', code: 'no' },
+      'Argentina': { fr: 'Argentine', code: 'ar' },
+      'Algeria': { fr: 'Algérie', code: 'dz' },
+      'Austria': { fr: 'Autriche', code: 'at' },
+      'Jordan': { fr: 'Jordanie', code: 'jo' },
+      'Portugal': { fr: 'Portugal', code: 'pt' },
+      'Congo DR': { fr: 'RD Congo', code: 'cd' },
+      'DR Congo': { fr: 'RD Congo', code: 'cd' },
+      'Uzbekistan': { fr: 'Ouzbékistan', code: 'uz' },
+      'Colombia': { fr: 'Colombie', code: 'co' },
+      'England': { fr: 'Angleterre', code: 'gb-eng' },
+      'Croatia': { fr: 'Croatie', code: 'hr' },
+      'Ghana': { fr: 'Ghana', code: 'gh' },
+      'Panama': { fr: 'Panama', code: 'pa' },
+      // Variantes françaises (pass-through)
+      'Mexique': { fr: 'Mexique', code: 'mx' },
+      'Afrique du Sud': { fr: 'Afrique du Sud', code: 'za' },
+      'Corée du Sud': { fr: 'Corée du Sud', code: 'kr' },
+      'Tchéquie': { fr: 'Tchéquie', code: 'cz' },
+      'Bosnie-Herzégovine': { fr: 'Bosnie-Herzégovine', code: 'ba' },
+      'Suisse': { fr: 'Suisse', code: 'ch' },
+      'Brésil': { fr: 'Brésil', code: 'br' },
+      'Maroc': { fr: 'Maroc', code: 'ma' },
+      'Haïti': { fr: 'Haïti', code: 'ht' },
+      'Écosse': { fr: 'Écosse', code: 'gb-sct' },
+      'États-Unis': { fr: 'États-Unis', code: 'us' },
+      'Paraguay': { fr: 'Paraguay', code: 'py' },
+      'Australie': { fr: 'Australie', code: 'au' },
+      'Turquie': { fr: 'Turquie', code: 'tr' },
+      'Allemagne': { fr: 'Allemagne', code: 'de' },
+      'Équateur': { fr: 'Équateur', code: 'ec' },
+      'Pays-Bas': { fr: 'Pays-Bas', code: 'nl' },
+      'Japon': { fr: 'Japon', code: 'jp' },
+      'Suède': { fr: 'Suède', code: 'se' },
+      'Tunisie': { fr: 'Tunisie', code: 'tn' },
+      'Belgique': { fr: 'Belgique', code: 'be' },
+      'Égypte': { fr: 'Égypte', code: 'eg' },
+      'Nouvelle-Zélande': { fr: 'Nouvelle-Zélande', code: 'nz' },
+      'Espagne': { fr: 'Espagne', code: 'es' },
+      'Cap-Vert': { fr: 'Cap-Vert', code: 'cv' },
+      'Arabie Saoudite': { fr: 'Arabie Saoudite', code: 'sa' },
+      'Sénégal': { fr: 'Sénégal', code: 'sn' },
+      'Irak': { fr: 'Irak', code: 'iq' },
+      'Norvège': { fr: 'Norvège', code: 'no' },
+      'Argentine': { fr: 'Argentine', code: 'ar' },
+      'Algérie': { fr: 'Algérie', code: 'dz' },
+      'Autriche': { fr: 'Autriche', code: 'at' },
+      'Jordanie': { fr: 'Jordanie', code: 'jo' },
+      'RD Congo': { fr: 'RD Congo', code: 'cd' },
+      'Ouzbékistan': { fr: 'Ouzbékistan', code: 'uz' },
+      'Colombie': { fr: 'Colombie', code: 'co' },
+      'Angleterre': { fr: 'Angleterre', code: 'gb-eng' },
+      'Croatie': { fr: 'Croatie', code: 'hr' },
+    };
+
+    function normalizeTeamName(name) {
+      if (!name || name === 'TBD') return name;
+      return String(name).trim();
+    }
+
+    function translateTeamName(name) {
+      const normalized = normalizeTeamName(name);
+      const entry = TEAM_TRANSLATIONS[normalized];
+      return entry ? entry.fr : normalized;
+    }
+
+    function teamFlagCode(name) {
+      const normalized = normalizeTeamName(name);
+      const entry = TEAM_TRANSLATIONS[normalized];
+      return entry ? entry.code : 'xx';
+    }
+
     const STATIC_FALLBACK_MATCHES = {
       // CdM 2026 — données réelles (fallback si API indisponible)
       2026: [
@@ -1199,8 +1316,8 @@
         // Met à jour aussi le cache des buteurs
         const scorersMap = new Map();
         const matches = data.games.map(g => {
-          const home = g.home_team_name_en || 'TBD';
-          const away = g.away_team_name_en || 'TBD';
+          const home = translateTeamName(g.home_team_name_en || 'TBD');
+          const away = translateTeamName(g.away_team_name_en || 'TBD');
           const venue = STADIUM_ID_TO_NAME[String(g.stadium_id)] || 'Stade à confirmer';
           const utcDate = parseWc26DateToIso(g.local_date, g.stadium_id) || new Date().toISOString();
           const stage = mapWc26TypeToStage(g.type);
@@ -1585,38 +1702,14 @@
     }
 
     function flagCodeForTeam(name) {
-      const map = {};
+      // 1) Mapping centralisé EN/FR → code ISO
+      const code = teamFlagCode(name);
+      if (code !== 'xx') return code;
+      // 2) Fallback sur les équipes statiques françaises
       const teams = STATIC_FALLBACK_TEAMS[2026] || [];
-      teams.forEach(t => map[t.name] = t.code);
-      // Mapping noms anglais API → codes ISO
-      const apiMap = {
-        'Mexico': 'mx', 'South Africa': 'za', 'South Korea': 'kr', 'Czechia': 'cz',
-        'Canada': 'ca', 'Bosnia-Herzegovina': 'ba', 'Qatar': 'qa', 'Switzerland': 'ch',
-        'Brazil': 'br', 'Morocco': 'ma', 'Haiti': 'ht', 'Scotland': 'gb-sct',
-        'United States': 'us', 'Paraguay': 'py', 'Australia': 'au', 'Turkey': 'tr',
-        'Germany': 'de', 'Curaçao': 'cw', 'Ivory Coast': 'ci', 'Ecuador': 'ec',
-        'Netherlands': 'nl', 'Japan': 'jp', 'Sweden': 'se', 'Tunisia': 'tn',
-        'Belgium': 'be', 'Egypt': 'eg', 'Iran': 'ir', 'New Zealand': 'nz',
-        'Spain': 'es', 'Cape Verde Islands': 'cv', 'Saudi Arabia': 'sa', 'Uruguay': 'uy',
-        'France': 'fr', 'Senegal': 'sn', 'Iraq': 'iq', 'Norway': 'no',
-        'Argentina': 'ar', 'Algeria': 'dz', 'Austria': 'at', 'Jordan': 'jo',
-        'Portugal': 'pt', 'Congo DR': 'cd', 'Uzbekistan': 'uz', 'Colombia': 'co',
-        'England': 'gb-eng', 'Croatia': 'hr', 'Ghana': 'gh', 'Panama': 'pa',
-        // Fallback français
-        'Mexique': 'mx', 'Afrique du Sud': 'za', 'Corée du Sud': 'kr', 'Tchéquie': 'cz',
-        'USA': 'us', 'États-Unis': 'us', 'Algérie': 'dz', 'Maroc': 'ma',
-        'Brésil': 'br', 'Écosse': 'gb-sct', 'Angleterre': 'gb-eng', 'Arabie Saoudite': 'sa',
-        'Pays-Bas': 'nl', 'Équateur': 'ec', "Côte d'Ivoire": 'ci', 'Turquie': 'tr',
-        'Suède': 'se', 'Tunisie': 'tn', 'Belgique': 'be', 'Égypte': 'eg',
-        'Nouvelle-Zélande': 'nz', 'Espagne': 'es', 'Cap-Vert': 'cv', 'Uruguay': 'uy',
-        'Sénégal': 'sn', 'Irak': 'iq', 'Norvège': 'no', 'Argentine': 'ar',
-        'Autriche': 'at', 'Jordanie': 'jo', 'Portugal': 'pt', 'RD Congo': 'cd',
-        'Ouzbékistan': 'uz', 'Colombie': 'co', 'Croatie': 'hr', 'Ghana': 'gh',
-        'Haïti': 'ht', 'Australie': 'au', 'Paraguay': 'py', 'Allemagne': 'de',
-        'Iran': 'ir', 'Japon': 'jp',
-      };
-      Object.assign(map, apiMap);
-      return map[name] || 'xx';
+      const found = teams.find(t => t.name === name || t.name === translateTeamName(name));
+      if (found) return found.code;
+      return 'xx';
     }
 
     function flagForTeam(name) {
