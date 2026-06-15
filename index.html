@@ -1162,7 +1162,7 @@
         return;
       }
       try {
-        const res = await fetchWithTimeout('https://worldcup26.ir/get/games', { cache: 'no-store' }, 6000);
+        const res = await fetchWithTimeout('https://worldcup26.ir/get/games', { cache: 'no-store' }, 10000);
         if (!res.ok) return;
         const data = await res.json();
         if (!data.games || !Array.isArray(data.games)) return;
@@ -1271,13 +1271,16 @@
 
     async function fetchWithTimeout(url, options, timeoutMs = 8000) {
       const controller = new AbortController();
-      const id = setTimeout(() => controller.abort(), timeoutMs);
+      const id = setTimeout(() => controller.abort(new Error('timeout')), timeoutMs);
       try {
         const res = await fetch(url, { ...options, signal: controller.signal });
         clearTimeout(id);
         return res;
       } catch (e) {
         clearTimeout(id);
+        if (e.name === 'AbortError') {
+          throw new Error(`timeout after ${timeoutMs}ms`);
+        }
         throw e;
       }
     }
@@ -1293,8 +1296,8 @@
       let lastError = null;
       for (let i = 0; i <= retries; i++) {
         try {
-          if (i > 0) await new Promise(r => setTimeout(r, 500 * i));
-          const res = await fetchWithTimeout(url, { cache: 'no-store' }, 8000);
+          if (i > 0) await new Promise(r => setTimeout(r, 1000 * i));
+          const res = await fetchWithTimeout(url, { cache: 'no-store' }, 15000);
           if (!res.ok) throw new Error(`HTTP ${res.status}`);
           const data = await res.json();
           if (!data.games || !Array.isArray(data.games)) throw new Error('invalid payload');
@@ -1302,7 +1305,11 @@
           return parseWorldcup26Payload(data);
         } catch (e) {
           lastError = e;
-          console.warn(`[worldcup26] fetch matches attempt ${i + 1} failed:`, e.message || e);
+          if (e.message === 'timeout after 15000ms') {
+            console.warn(`[worldcup26] fetch matches attempt ${i + 1} timed out`);
+          } else {
+            console.warn(`[worldcup26] fetch matches attempt ${i + 1} failed:`, e.message || e);
+          }
         }
       }
       // En cas d'erreur, utiliser le cache même périmé
@@ -1310,7 +1317,7 @@
         console.warn('[worldcup26] using stale cache after network failure');
         return parseWorldcup26Payload(cached);
       }
-      console.error('[worldcup26] fetch matches failed:', lastError);
+      console.error('[worldcup26] fetch matches failed:', lastError?.message || lastError);
       return null;
     }
 
