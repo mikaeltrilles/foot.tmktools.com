@@ -1766,6 +1766,8 @@
       // Priorité aux flags fiables de worldcup26.ir
       if (m.finished === true || m.finished === 'TRUE' || m.status === 'FINISHED' || m.status === 'AWARDED') return 'finished';
       const elapsed = m.time_elapsed;
+      // worldcup26.ir indique parfois explicitement "finished" même si le flag finished est FALSE
+      if (elapsed === 'finished') return 'finished';
       const isWc26Live = elapsed && elapsed !== 'notstarted' && elapsed !== 'finished' && (elapsed === 'live' || !isNaN(Number(elapsed)));
       if (isWc26Live || m.status === 'IN_PLAY' || m.status === 'PAUSED' || m.status === 'LIVE') return 'live';
       // Si worldcup26.ir dit explicitement "notstarted", on fait confiance à l'API
@@ -2249,7 +2251,14 @@
       }
 
       const activeFilter = document.querySelector('.tab[aria-selected="true"]')?.dataset.filter || 'all';
-      const filtered = matches.filter(m => {
+      // Ignorer les placeholders de phase finale dont les deux équipes sont inconnues
+      const isRealMatch = m => {
+        const home = m.homeTeam?.name;
+        const away = m.awayTeam?.name;
+        return home && home !== 'TBD' && away && away !== 'TBD';
+      };
+      const realMatches = matches.filter(isRealMatch);
+      const filtered = realMatches.filter(m => {
         const effective = getMatchEffectiveStatusCached(m);
         if (activeFilter === 'finished') return effective === 'finished';
         if (activeFilter === 'live') return effective === 'live';
@@ -2258,7 +2267,7 @@
       });
 
       // Détecte s'il y a au moins un match en direct dans l'ensemble des données
-      const hasLive = matches.some(m => getMatchEffectiveStatusCached(m) === 'live');
+      const hasLive = realMatches.some(m => getMatchEffectiveStatusCached(m) === 'live');
 
       // Trier par date croissante sauf "Terminés" qui est décroissant (plus récent en haut)
       filtered.sort((a, b) => {
