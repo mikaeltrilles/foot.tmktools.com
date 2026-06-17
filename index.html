@@ -2064,16 +2064,29 @@
           : '<span class="flag-placeholder" aria-hidden="true"></span>';
         const topFlagHtml = teamName ? `<span class="scorer-flag" aria-hidden="true">${flagForTeam(teamName)}</span>` : '';
 
-        const goalsList = s.goals
-          .sort((a, b) => String(a.minute).localeCompare(String(b.minute), undefined, { numeric: true }))
-          .map(g => {
-            const oppCode = flagCodeForTeam(g.opponent);
+        // Regrouper les buts par adversaire pour mettre toutes les minutes sur la même ligne
+        const goalsByOpponent = {};
+        s.goals.forEach(g => {
+          if (!goalsByOpponent[g.opponent]) {
+            goalsByOpponent[g.opponent] = [];
+          }
+          goalsByOpponent[g.opponent].push(String(g.minute));
+        });
+
+        const goalsList = Object.entries(goalsByOpponent)
+          .sort((a, b) => a[0].localeCompare(b[0], 'fr'))
+          .map(([opponent, minutes]) => {
+            const minutesStr = minutes
+              .sort((a, b) => String(a).localeCompare(String(b), undefined, { numeric: true }))
+              .map(m => `${m}'`)
+              .join(', ');
+            const oppCode = flagCodeForTeam(opponent);
             const oppFlag = oppCode !== 'xx'
               ? `<span class="flag-tiny" aria-hidden="true"><img src="https://flagcdn.com/${oppCode}.svg" alt="" loading="lazy" crossorigin="anonymous"></span>`
               : '<span class="flag-placeholder" aria-hidden="true"></span>';
             return `<div class="scorer-goal-line">
-              <span class="scorer-goal-minute">${g.minute}'</span>
-              <span class="scorer-goal-opponent">${oppFlag} ${g.opponent}</span>
+              <span class="scorer-goal-opponent">${oppFlag} ${opponent}</span>
+              <span class="scorer-goal-minute">${minutesStr}</span>
             </div>`;
           }).join('');
 
