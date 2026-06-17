@@ -344,16 +344,31 @@
     .host-card .name { font-family: var(--font-display); font-weight: 700; font-size: var(--text-lg); margin-top: var(--space-3); }
     .host-card .cities { font-size: var(--text-sm); color: var(--color-text-muted); margin-top: var(--space-2); }
 
-    .stadium-card { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: var(--space-2); }
+    .stadium-card { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: var(--space-2); position: relative; }
     @media (min-width: 480px) {
       .stadium-card { padding: var(--space-3); }
     }
     @media (min-width: 768px) {
       .stadium-card { padding: var(--space-4); }
     }
-    .stadium-card .stadium-name { font-weight: 600; font-size: var(--text-sm); }
+    .stadium-card .stadium-name { font-weight: 600; font-size: var(--text-sm); padding-right: var(--space-7); }
     .stadium-card .stadium-info { font-size: var(--text-xs); color: var(--color-text-muted); margin-top: var(--space-1); }
     .stadium-card .capacity { font-size: var(--text-xs); color: var(--color-primary); font-weight: 600; margin-top: var(--space-1); }
+    .stadium-flag {
+      position: absolute;
+      top: var(--space-2);
+      right: var(--space-2);
+      width: 28px;
+      height: 20px;
+      border-radius: 3px;
+      overflow: hidden;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    }
+    .stadium-flag img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    @media (min-width: 768px) {
+      .stadium-flag { top: var(--space-3); right: var(--space-4); width: 36px; height: 26px; }
+      .stadium-card .stadium-name { padding-right: var(--space-9); }
+    }
 
     .team-chip {
       display: flex; align-items: center; gap: var(--space-2);
@@ -791,22 +806,22 @@
 
       <h3 style="font-size: var(--text-lg); margin-bottom: var(--space-4); margin-top: var(--space-8); color: var(--color-text-muted);">16 Stades</h3>
       <div class="grid grid-4" id="stadiums-grid">
-        <article class="stadium-card"><div class="stadium-name">MetLife Stadium</div><div class="stadium-info">East Rutherford, NJ · USA</div><div class="capacity">82 500 places</div></article>
-        <article class="stadium-card"><div class="stadium-name">AT&T Stadium</div><div class="stadium-info">Arlington, TX · USA</div><div class="capacity">94 000 places</div></article>
-        <article class="stadium-card"><div class="stadium-name">Mercedes-Benz Stadium</div><div class="stadium-info">Atlanta, GA · USA</div><div class="capacity">75 000 places</div></article>
-        <article class="stadium-card"><div class="stadium-name">Arrowhead Stadium</div><div class="stadium-info">Kansas City, MO · USA</div><div class="capacity">73 000 places</div></article>
-        <article class="stadium-card"><div class="stadium-name">NRG Stadium</div><div class="stadium-info">Houston, TX · USA</div><div class="capacity">72 000 places</div></article>
-        <article class="stadium-card"><div class="stadium-name">Levi's Stadium</div><div class="stadium-info">Santa Clara, CA · USA</div><div class="capacity">71 000 places</div></article>
-        <article class="stadium-card"><div class="stadium-name">SoFi Stadium</div><div class="stadium-info">Inglewood, CA · USA</div><div class="capacity">70 000 places</div></article>
-        <article class="stadium-card"><div class="stadium-name">Lincoln Financial Field</div><div class="stadium-info">Philadelphia, PA · USA</div><div class="capacity">69 000 places</div></article>
-        <article class="stadium-card"><div class="stadium-name">Lumen Field</div><div class="stadium-info">Seattle, WA · USA</div><div class="capacity">69 000 places</div></article>
-        <article class="stadium-card"><div class="stadium-name">Gillette Stadium</div><div class="stadium-info">Foxborough, MA · USA</div><div class="capacity">65 000 places</div></article>
-        <article class="stadium-card"><div class="stadium-name">Hard Rock Stadium</div><div class="stadium-info">Miami Gardens, FL · USA</div><div class="capacity">65 000 places</div></article>
-        <article class="stadium-card"><div class="stadium-name">Estadio Azteca</div><div class="stadium-info">Mexico City · Mexique</div><div class="capacity">83 000 places</div></article>
-        <article class="stadium-card"><div class="stadium-name">Estadio BBVA</div><div class="stadium-info">Guadalupe, NL · Mexique</div><div class="capacity">53 500 places</div></article>
-        <article class="stadium-card"><div class="stadium-name">Estadio Akron</div><div class="stadium-info">Zapopan · Mexique</div><div class="capacity">48 000 places</div></article>
-        <article class="stadium-card"><div class="stadium-name">BMO Field</div><div class="stadium-info">Toronto · Canada</div><div class="capacity">45 000 places</div></article>
-        <article class="stadium-card"><div class="stadium-name">BC Place</div><div class="stadium-info">Vancouver · Canada</div><div class="capacity">54 000 places</div></article>
+        <article class="stadium-card"><span class="stadium-flag" aria-hidden="true"><img src="https://flagcdn.com/us.svg" alt="USA" loading="lazy"></span><div class="stadium-name">MetLife Stadium</div><div class="stadium-info">East Rutherford, NJ · USA</div><div class="capacity">82 500 places</div></article>
+        <article class="stadium-card"><span class="stadium-flag" aria-hidden="true"><img src="https://flagcdn.com/us.svg" alt="USA" loading="lazy"></span><div class="stadium-name">AT&T Stadium</div><div class="stadium-info">Arlington, TX · USA</div><div class="capacity">94 000 places</div></article>
+        <article class="stadium-card"><span class="stadium-flag" aria-hidden="true"><img src="https://flagcdn.com/us.svg" alt="USA" loading="lazy"></span><div class="stadium-name">Mercedes-Benz Stadium</div><div class="stadium-info">Atlanta, GA · USA</div><div class="capacity">75 000 places</div></article>
+        <article class="stadium-card"><span class="stadium-flag" aria-hidden="true"><img src="https://flagcdn.com/us.svg" alt="USA" loading="lazy"></span><div class="stadium-name">Arrowhead Stadium</div><div class="stadium-info">Kansas City, MO · USA</div><div class="capacity">73 000 places</div></article>
+        <article class="stadium-card"><span class="stadium-flag" aria-hidden="true"><img src="https://flagcdn.com/us.svg" alt="USA" loading="lazy"></span><div class="stadium-name">NRG Stadium</div><div class="stadium-info">Houston, TX · USA</div><div class="capacity">72 000 places</div></article>
+        <article class="stadium-card"><span class="stadium-flag" aria-hidden="true"><img src="https://flagcdn.com/us.svg" alt="USA" loading="lazy"></span><div class="stadium-name">Levi's Stadium</div><div class="stadium-info">Santa Clara, CA · USA</div><div class="capacity">71 000 places</div></article>
+        <article class="stadium-card"><span class="stadium-flag" aria-hidden="true"><img src="https://flagcdn.com/us.svg" alt="USA" loading="lazy"></span><div class="stadium-name">SoFi Stadium</div><div class="stadium-info">Inglewood, CA · USA</div><div class="capacity">70 000 places</div></article>
+        <article class="stadium-card"><span class="stadium-flag" aria-hidden="true"><img src="https://flagcdn.com/us.svg" alt="USA" loading="lazy"></span><div class="stadium-name">Lincoln Financial Field</div><div class="stadium-info">Philadelphia, PA · USA</div><div class="capacity">69 000 places</div></article>
+        <article class="stadium-card"><span class="stadium-flag" aria-hidden="true"><img src="https://flagcdn.com/us.svg" alt="USA" loading="lazy"></span><div class="stadium-name">Lumen Field</div><div class="stadium-info">Seattle, WA · USA</div><div class="capacity">69 000 places</div></article>
+        <article class="stadium-card"><span class="stadium-flag" aria-hidden="true"><img src="https://flagcdn.com/us.svg" alt="USA" loading="lazy"></span><div class="stadium-name">Gillette Stadium</div><div class="stadium-info">Foxborough, MA · USA</div><div class="capacity">65 000 places</div></article>
+        <article class="stadium-card"><span class="stadium-flag" aria-hidden="true"><img src="https://flagcdn.com/us.svg" alt="USA" loading="lazy"></span><div class="stadium-name">Hard Rock Stadium</div><div class="stadium-info">Miami Gardens, FL · USA</div><div class="capacity">65 000 places</div></article>
+        <article class="stadium-card"><span class="stadium-flag" aria-hidden="true"><img src="https://flagcdn.com/mx.svg" alt="Mexique" loading="lazy"></span><div class="stadium-name">Estadio Azteca</div><div class="stadium-info">Mexico City · Mexique</div><div class="capacity">83 000 places</div></article>
+        <article class="stadium-card"><span class="stadium-flag" aria-hidden="true"><img src="https://flagcdn.com/mx.svg" alt="Mexique" loading="lazy"></span><div class="stadium-name">Estadio BBVA</div><div class="stadium-info">Guadalupe, NL · Mexique</div><div class="capacity">53 500 places</div></article>
+        <article class="stadium-card"><span class="stadium-flag" aria-hidden="true"><img src="https://flagcdn.com/mx.svg" alt="Mexique" loading="lazy"></span><div class="stadium-name">Estadio Akron</div><div class="stadium-info">Zapopan · Mexique</div><div class="capacity">48 000 places</div></article>
+        <article class="stadium-card"><span class="stadium-flag" aria-hidden="true"><img src="https://flagcdn.com/ca.svg" alt="Canada" loading="lazy"></span><div class="stadium-name">BMO Field</div><div class="stadium-info">Toronto · Canada</div><div class="capacity">45 000 places</div></article>
+        <article class="stadium-card"><span class="stadium-flag" aria-hidden="true"><img src="https://flagcdn.com/ca.svg" alt="Canada" loading="lazy"></span><div class="stadium-name">BC Place</div><div class="stadium-info">Vancouver · Canada</div><div class="capacity">54 000 places</div></article>
       </div>
 
       <h3 style="font-size: var(--text-lg); margin-bottom: var(--space-4); margin-top: var(--space-8); color: var(--color-text-muted);">48 Équipes qualifiées</h3>
