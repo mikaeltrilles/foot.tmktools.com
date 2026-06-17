@@ -544,6 +544,14 @@
     .standings-table th:first-child, .standings-table td:first-child { text-align: left; }
     .standings-table td:nth-child(2) { text-align: left; }
     .standings-table .points { color: var(--color-primary); font-weight: 700; }
+    .standings-table tr.qualified { background: rgba(46, 204, 113, 0.15); }
+    .standings-table tr.qualified td { color: #2ecc71; }
+    [data-theme="light"] .standings-table tr.qualified { background: rgba(39, 174, 96, 0.12); }
+    [data-theme="light"] .standings-table tr.qualified td { color: #27ae60; }
+    .standings-table tr.eliminated { background: rgba(231, 76, 60, 0.12); }
+    .standings-table tr.eliminated td { color: #ff5e52; }
+    [data-theme="light"] .standings-table tr.eliminated { background: rgba(231, 76, 60, 0.08); }
+    [data-theme="light"] .standings-table tr.eliminated td { color: #e74c3c; }
     @media (min-width: 1024px) { #standings-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--space-6); } }
 
     /* Cartes buteurs */
@@ -1764,8 +1772,9 @@
         const rows = standings[g].map((t, i) => {
           const diff = t.gf - t.ga;
           const diffStr = diff > 0 ? `+${diff}` : diff;
+          const rowClass = i < 2 ? 'qualified' : 'eliminated';
           return `
-            <tr>
+            <tr class="${rowClass}">
               <td class="rank">${i + 1}</td>
               <td class="team-cell">${flagCodeForTeam(t.team) !== 'xx' ? `<span class="flag-tiny" aria-hidden="true"><img src="https://flagcdn.com/${flagCodeForTeam(t.team)}.svg" alt="" loading="lazy" crossorigin="anonymous"></span>` : '<span class="flag-placeholder" aria-hidden="true"></span>'} <span class="team-name">${t.team}</span></td>
               <td>${t.played}</td>
