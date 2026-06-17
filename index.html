@@ -3,9 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-  <meta http-equiv="Pragma" content="no-cache">
-  <meta http-equiv="Expires" content="0">
+  <meta http-equiv="Cache-Control" content="public, max-age=300">
+  <meta http-equiv="Expires" content="300">
   <title>foot.tmktools.com — Coupe du Monde FIFA en temps réel</title>
   <meta name="description" content="Suivi live de la Coupe du Monde de Football FIFA. Scores, équipes, stades, palmarès et compte à rebours.">
   <meta property="og:title" content="foot.tmktools.com — Coupe du Monde FIFA">
@@ -13,11 +12,16 @@
   <meta property="og:image" content="https://foot.tmktools.com/assets/og-image.svg">
   <meta property="og:type" content="website">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E⚽%3C/text%3E%3C/svg%3E">
+  <link rel="dns-prefetch" href="https://fonts.googleapis.com">
+  <link rel="dns-prefetch" href="https://fonts.gstatic.com">
+  <link rel="dns-prefetch" href="https://flagcdn.com">
+  <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
+  <link rel="dns-prefetch" href="https://unpkg.com">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://flagcdn.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-  <link href="https://api.fontshare.com/v2/css?f[]=satoshi@300,400,500,600,700,800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,600,700,800&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" defer></script>
   <script src="https://unpkg.com/lucide@latest" defer></script>
 
@@ -1083,6 +1087,9 @@
     let refreshInterval = null;
     let goalsChartInstance = null;
     let palmaresChartInstance = null;
+    let computeCache = {};
+    let wc26FetchPromise = null;
+    let isPageVisible = !document.hidden;
 
     const STATIC_FALLBACK_TEAMS = {
       2026: [
@@ -1370,6 +1377,62 @@
     let chartMatches = [];
     let wc26Scorers = new Map(); // buteurs depuis worldcup26.ir
 
+    function resetComputeCache() {
+      computeCache = {
+        status: new Map(),
+        scorers: new Map(),
+        flagCode: new Map()
+      };
+    }
+
+    function cacheKeyForMatch(m) {
+      return `${m.id}|${m.status}|${m.finished}|${m.time_elapsed}|${m.minute}|${m.utcDate}|${m.score?.fullTime?.home ?? ''}|${m.score?.fullTime?.away ?? ''}`;
+    }
+
+    function getMatchEffectiveStatusCached(m) {
+      const key = cacheKeyForMatch(m);
+      if (computeCache.status.has(key)) return computeCache.status.get(key);
+      const value = getMatchEffectiveStatus(m);
+      computeCache.status.set(key, value);
+      return value;
+    }
+
+    function getGoalScorersCached(m) {
+      const key = cacheKeyForMatch(m);
+      if (computeCache.scorers.has(key)) return computeCache.scorers.get(key);
+      const value = getGoalScorers(m);
+      computeCache.scorers.set(key, value);
+      return value;
+    }
+
+    function flagCodeForTeamCached(name) {
+      if (!name || name === 'TBD') return 'xx';
+      const key = String(name);
+      if (computeCache.flagCode.has(key)) return computeCache.flagCode.get(key);
+      const value = flagCodeForTeam(name);
+      computeCache.flagCode.set(key, value);
+      return value;
+    }
+
+    function flagForTeamCached(name) {
+      return `<img src="https://flagcdn.com/${flagCodeForTeamCached(name)}.svg" alt="" loading="lazy">`;
+    }
+
+    function cleanupMatchMaps(matches) {
+      const validIds = new Set();
+      matches.forEach(m => {
+        validIds.add(`${m.id}-home`);
+        validIds.add(`${m.id}-away`);
+        validIds.add(m.id);
+      });
+      for (const key of previousScores.keys()) {
+        if (!validIds.has(key)) previousScores.delete(key);
+      }
+      for (const key of lastRefreshTime.keys()) {
+        if (!validIds.has(key)) lastRefreshTime.delete(key);
+      }
+    }
+
     async function fetchWorldcup26Scorers() {
       // Si on a déjà des données buteurs fraîches, ne pas rafraîchir inutilement
       if (wc26Scorers && wc26Scorers.size > 0) return;
@@ -1509,34 +1572,46 @@
       if (cached && cached.games && Array.isArray(cached.games)) {
         return parseWorldcup26Payload(cached);
       }
-      const url = 'https://worldcup26.ir/get/games';
-      const retries = 2;
-      let lastError = null;
-      for (let i = 0; i <= retries; i++) {
-        try {
-          if (i > 0) await new Promise(r => setTimeout(r, 1000 * i));
-          const res = await fetchWithTimeout(url, { cache: 'no-store' }, 15000);
-          if (!res.ok) throw new Error(`HTTP ${res.status}`);
-          const data = await res.json();
-          if (!data.games || !Array.isArray(data.games)) throw new Error('invalid payload');
-          setWc26Cache(data);
-          return parseWorldcup26Payload(data);
-        } catch (e) {
-          lastError = e;
-          if (e.message === 'timeout after 15000ms') {
-            console.warn(`[worldcup26] fetch matches attempt ${i + 1} timed out`);
-          } else {
-            console.warn(`[worldcup26] fetch matches attempt ${i + 1} failed:`, e.message || e);
+
+      // Déduplication : si un appel est déjà en cours, réutiliser sa promesse
+      if (wc26FetchPromise) return wc26FetchPromise;
+
+      wc26FetchPromise = (async () => {
+        const url = 'https://worldcup26.ir/get/games';
+        const retries = 2;
+        let lastError = null;
+        for (let i = 0; i <= retries; i++) {
+          try {
+            if (i > 0) await new Promise(r => setTimeout(r, 1000 * i));
+            const res = await fetchWithTimeout(url, { cache: 'no-store' }, 15000);
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            const data = await res.json();
+            if (!data.games || !Array.isArray(data.games)) throw new Error('invalid payload');
+            setWc26Cache(data);
+            return parseWorldcup26Payload(data);
+          } catch (e) {
+            lastError = e;
+            if (e.message === 'timeout after 15000ms') {
+              console.warn(`[worldcup26] fetch matches attempt ${i + 1} timed out`);
+            } else {
+              console.warn(`[worldcup26] fetch matches attempt ${i + 1} failed:`, e.message || e);
+            }
           }
         }
+        // En cas d'erreur, utiliser le cache même périmé
+        if (cached && cached.games) {
+          console.warn('[worldcup26] using stale cache after network failure');
+          return parseWorldcup26Payload(cached);
+        }
+        console.error('[worldcup26] fetch matches failed:', lastError?.message || lastError);
+        return null;
+      })();
+
+      try {
+        return await wc26FetchPromise;
+      } finally {
+        wc26FetchPromise = null;
       }
-      // En cas d'erreur, utiliser le cache même périmé
-      if (cached && cached.games) {
-        console.warn('[worldcup26] using stale cache after network failure');
-        return parseWorldcup26Payload(cached);
-      }
-      console.error('[worldcup26] fetch matches failed:', lastError?.message || lastError);
-      return null;
     }
 
     function parseWorldcup26Payload(data) {
@@ -1810,7 +1885,7 @@
         if (!home || !away) return;
         const homeScore = m.score?.fullTime?.home;
         const awayScore = m.score?.fullTime?.away;
-        const isFinished = getMatchEffectiveStatus(m) === 'finished';
+        const isFinished = getMatchEffectiveStatusCached(m) === 'finished';
         if (!stats[group]) stats[group] = {};
         [home, away].forEach(team => {
           if (!stats[group][team]) {
@@ -2028,7 +2103,7 @@
       matches.forEach(m => {
         const homeTeam = m.homeTeam?.name || '';
         const awayTeam = m.awayTeam?.name || '';
-        const goals = getGoalScorers(m) || [];
+        const goals = getGoalScorersCached(m) || [];
         goals.forEach(g => {
           if (!g || !g.scorer) return;
           const key = g.scorer;
@@ -2126,12 +2201,13 @@
       if (!container) return;
       if (!matches || !matches.length) {
         container.innerHTML = '<p class="text-center" style="color: var(--color-text-muted); padding: var(--space-8) 0;">Aucun match à afficher.</p>';
+        cleanupMatchMaps([]);
         return;
       }
 
       const activeFilter = document.querySelector('.tab[aria-selected="true"]')?.dataset.filter || 'all';
       const filtered = matches.filter(m => {
-        const effective = getMatchEffectiveStatus(m);
+        const effective = getMatchEffectiveStatusCached(m);
         if (activeFilter === 'finished') return effective === 'finished';
         if (activeFilter === 'live') return effective === 'live';
         if (activeFilter === 'upcoming') return effective === 'upcoming';
@@ -2139,7 +2215,7 @@
       });
 
       // Détecte s'il y a au moins un match en direct dans l'ensemble des données
-      const hasLive = matches.some(m => getMatchEffectiveStatus(m) === 'live');
+      const hasLive = matches.some(m => getMatchEffectiveStatusCached(m) === 'live');
 
       // Trier par date croissante sauf "Terminés" qui est décroissant (plus récent en haut)
       filtered.sort((a, b) => {
@@ -2160,38 +2236,32 @@
           finished: 'Aucun match terminé.'
         };
         container.innerHTML = `<p class="text-center" style="color: var(--color-text-muted); padding: var(--space-8) 0;">${emptyMessages[activeFilter] || 'Aucun match à afficher.'}</p>`;
+        cleanupMatchMaps([]);
         return;
       }
 
-      container.innerHTML = filtered.map(m => {
-        // Scores : fullTime (live/final), halfTime, ou directement score.*
-        let homeScore = (m.score && m.score.fullTime && m.score.fullTime.home !== null && m.score.fullTime.home !== undefined) ? m.score.fullTime.home : (m.score && m.score.halfTime && m.score.halfTime.home !== null && m.score.halfTime.home !== undefined ? m.score.halfTime.home : '-');
-        let awayScore = (m.score && m.score.fullTime && m.score.fullTime.away !== null && m.score.fullTime.away !== undefined) ? m.score.fullTime.away : (m.score && m.score.halfTime && m.score.halfTime.away !== null && m.score.halfTime.away !== undefined ? m.score.halfTime.away : '-');
-        if (homeScore === null || homeScore === undefined) homeScore = '-';
-        if (awayScore === null || awayScore === undefined) awayScore = '-';
-        const effectiveStatus = getMatchEffectiveStatus(m);
-        const isLive = effectiveStatus === 'live';
-        const isFinished = effectiveStatus === 'finished';
-        const statusLabel = isLive ? 'EN COURS' : getStatusLabel(m.status);
-        const phase = formatPhase(m.stage);
-        const venue = m.venue || 'Stade à confirmer';
-        const city = STADIUM_CITIES[venue] || '';
-        const country = STADIUM_COUNTRIES[venue] || '';
-        const { local: localDateTime, paris: parisTime } = formatMatchDateTime(m.utcDate, venue);
-        const liveMinute = m.minute || (m.time_elapsed && !isNaN(Number(m.time_elapsed)) ? Number(m.time_elapsed) : '');
-        const minute = (isLive && liveMinute) ? ` (${liveMinute}')` : '';
-        const dotClass = isLive ? 'status-dot live' : 'status-dot';
-        const prevKey = `${m.id}-home`;
-        const prevAwayKey = `${m.id}-away`;
-        const prevHome = previousScores.get(prevKey);
-        const prevAway = previousScores.get(prevAwayKey);
-        const flashClass = (prevHome !== undefined && prevAway !== undefined && (prevHome !== homeScore || prevAway !== awayScore)) ? ' flash' : '';
-        previousScores.set(prevKey, homeScore);
-        previousScores.set(prevAwayKey, awayScore);
-        const scorers = getGoalScorers(m);
+      // Supprimer le message vide s'il existe
+      const emptyMsg = container.querySelector(':scope > p.text-center');
+      if (emptyMsg) emptyMsg.remove();
+
+      const desiredIds = filtered.map(m => String(m.id));
+
+      // Retirer les cartes obsolètes et indexer les cartes conservées
+      const cardById = new Map();
+      container.querySelectorAll(':scope > article.match-card').forEach(card => {
+        const id = card.dataset.matchId;
+        if (!desiredIds.includes(id)) {
+          card.remove();
+        } else {
+          cardById.set(id, card);
+        }
+      });
+
+      function buildScorersHtml(scorers) {
+        if (!scorers.length) return '';
         const homeScorers = scorers.filter(g => g.side === 'home');
         const awayScorers = scorers.filter(g => g.side === 'away');
-        const scorersHtml = scorers.length ? `
+        return `
           <div class="match-scorers">
             <div class="match-scorers-col home">
               ${homeScorers.map(g => `
@@ -2209,28 +2279,67 @@
                 </div>
               `).join('')}
             </div>
-          </div>` : '';
+          </div>`;
+      }
 
-        // Badge coloré selon le statut effectif
+      filtered.forEach((m, index) => {
+        const matchId = String(m.id);
+        let card = cardById.get(matchId);
+
+        let homeScore = (m.score && m.score.fullTime && m.score.fullTime.home !== null && m.score.fullTime.home !== undefined) ? m.score.fullTime.home : (m.score && m.score.halfTime && m.score.halfTime.home !== null && m.score.halfTime.home !== undefined ? m.score.halfTime.home : '-');
+        let awayScore = (m.score && m.score.fullTime && m.score.fullTime.away !== null && m.score.fullTime.away !== undefined) ? m.score.fullTime.away : (m.score && m.score.halfTime && m.score.halfTime.away !== null && m.score.halfTime.away !== undefined ? m.score.halfTime.away : '-');
+        if (homeScore === null || homeScore === undefined) homeScore = '-';
+        if (awayScore === null || awayScore === undefined) awayScore = '-';
+
+        const effectiveStatus = getMatchEffectiveStatusCached(m);
+        const isLive = effectiveStatus === 'live';
+        const isFinished = effectiveStatus === 'finished';
+        const statusLabel = isLive ? 'EN COURS' : getStatusLabel(m.status);
+        const phase = formatPhase(m.stage);
+        const venue = m.venue || 'Stade à confirmer';
+        const city = STADIUM_CITIES[venue] || '';
+        const country = STADIUM_COUNTRIES[venue] || '';
+        const { local: localDateTime, paris: parisTime } = formatMatchDateTime(m.utcDate, venue);
+        const liveMinute = m.minute || (m.time_elapsed && !isNaN(Number(m.time_elapsed)) ? Number(m.time_elapsed) : '');
+        const minute = (isLive && liveMinute) ? ` (${liveMinute}')` : '';
+        const dotClass = isLive ? 'status-dot live' : 'status-dot';
+
+        const prevKey = `${m.id}-home`;
+        const prevAwayKey = `${m.id}-away`;
+        const prevHome = previousScores.get(prevKey);
+        const prevAway = previousScores.get(prevAwayKey);
+        const scoreChanged = (prevHome !== undefined && prevAway !== undefined && (prevHome !== homeScore || prevAway !== awayScore));
+        previousScores.set(prevKey, homeScore);
+        previousScores.set(prevAwayKey, awayScore);
+
+        const scorers = getGoalScorersCached(m);
+        const scorersHtml = buildScorersHtml(scorers);
+
         let badgeClass = '';
         if (isFinished) badgeClass = 'finished';
         else if (isLive) badgeClass = 'live';
         else badgeClass = 'upcoming';
 
-        return `
-          <article class="match-card${flashClass}" data-status="${m.status}" data-match-id="${m.id}">
+        const scoreText = (homeScore === '-' && awayScore === '-') ? (isLive ? '0 – 0' : 'vs') : homeScore + ' – ' + awayScore;
+
+        if (!card) {
+          card = document.createElement('article');
+          card.className = 'match-card';
+          card.dataset.status = m.status;
+          card.dataset.matchId = matchId;
+          card.innerHTML = `
             <div class="match-header">
               <span class="match-phase">${phase}${m.group ? ' · ' + m.group : ''}</span>
               <span class="badge-status ${badgeClass}"><span class="${dotClass}" aria-hidden="true"></span> ${statusLabel}${minute}</span>
             </div>
             <div class="match-teams">
               <div class="match-team">
-                <span class="flag" aria-hidden="true">${flagForTeam(m.homeTeam?.name || 'TBD')}</span>
+                <span class="flag" aria-hidden="true">${flagForTeamCached(m.homeTeam?.name || 'TBD')}</span>
                 <span class="name">${m.homeTeam?.name || 'TBD'}</span>
               </div>
-              <div class="match-score" aria-label="Score ${homeScore} à ${awayScore}">${(homeScore === '-' && awayScore === '-') ? (isLive ? '0 – 0' : 'vs') : homeScore + ' – ' + awayScore}</div>
+              <div class="match-score" aria-label="Score ${homeScore} à ${awayScore}">${scoreText}</div>
               <div class="match-team">
-                <span class="flag" aria-hidden="true">${flagForTeam(m.awayTeam?.name || 'TBD')}</span>
+                <span class="flag" aria-hidden="true">${flagForTeamCached(m.awayTeam?.name || 'TBD')}</span>
                 <span class="name">${m.awayTeam?.name || 'TBD'}</span>
               </div>
             </div>
@@ -2241,9 +2350,60 @@
               <div class="match-meta-row">📍 ${venue}${city ? ' - ' + city : ''}${country ? ' - ' + country : ''}</div>
               ${(isLive && lastRefreshTime.has(m.id)) ? `<span class="refresh-indicator">Maj ${new Date(lastRefreshTime.get(m.id)).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit',second:'2-digit'})}</span>` : ''}
             </div>
-          </article>
-        `;
-      }).join('');
+          `;
+          const ref = container.children[index];
+          container.insertBefore(card, ref || null);
+        } else {
+          // Réordonner si nécessaire
+          const ref = container.children[index];
+          if (ref !== card) container.insertBefore(card, ref || null);
+
+          if (scoreChanged) {
+            card.classList.add('flash');
+            setTimeout(() => card.classList.remove('flash'), 1000);
+          }
+
+          const phaseEl = card.querySelector('.match-phase');
+          if (phaseEl) phaseEl.textContent = `${phase}${m.group ? ' · ' + m.group : ''}`;
+
+          const badgeEl = card.querySelector('.badge-status');
+          if (badgeEl) {
+            badgeEl.className = `badge-status ${badgeClass}`;
+            badgeEl.innerHTML = `<span class="${dotClass}" aria-hidden="true"></span> ${statusLabel}${minute}`;
+          }
+
+          const scoreEl = card.querySelector('.match-score');
+          if (scoreEl) {
+            scoreEl.textContent = scoreText;
+            scoreEl.setAttribute('aria-label', `Score ${homeScore} à ${awayScore}`);
+          }
+
+          const existingScorers = card.querySelector('.match-scorers');
+          const metaEl = card.querySelector('.match-meta');
+          if (scorersHtml) {
+            if (existingScorers) {
+              existingScorers.outerHTML = scorersHtml;
+            } else if (metaEl) {
+              const wrapper = document.createElement('div');
+              wrapper.innerHTML = scorersHtml;
+              card.insertBefore(wrapper.firstElementChild, metaEl);
+            }
+          } else if (existingScorers) {
+            existingScorers.remove();
+          }
+
+          if (metaEl) {
+            metaEl.innerHTML = `
+              <div class="match-meta-row">📅 ${localDateTime}</div>
+              <div class="match-meta-row">🕐 <span class="time-paris">${parisTime} (date/heure de Paris)</span></div>
+              <div class="match-meta-row">📍 ${venue}${city ? ' - ' + city : ''}${country ? ' - ' + country : ''}</div>
+              ${(isLive && lastRefreshTime.has(m.id)) ? `<span class="refresh-indicator">Maj ${new Date(lastRefreshTime.get(m.id)).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit',second:'2-digit'})}</span>` : ''}
+            `;
+          }
+        }
+      });
+
+      cleanupMatchMaps(filtered);
     }
 
     function renderNextWorldCups() {
@@ -2452,30 +2612,48 @@
       }
     }
 
-    async function fetchAndRenderMatches(wc) {
+    function matchesResultsChanged(oldMatches, newMatches) {
+      if (!oldMatches || !newMatches) return true;
+      if (oldMatches.length !== newMatches.length) return true;
+      for (let i = 0; i < newMatches.length; i++) {
+        const a = oldMatches[i], b = newMatches[i];
+        if (a.id !== b.id) return true;
+        if (a.status !== b.status) return true;
+        if (a.finished !== b.finished) return true;
+        if (a.time_elapsed !== b.time_elapsed) return true;
+        if ((a.score?.fullTime?.home ?? null) !== (b.score?.fullTime?.home ?? null)) return true;
+        if ((a.score?.fullTime?.away ?? null) !== (b.score?.fullTime?.away ?? null)) return true;
+      }
+      return false;
+    }
+
+    async function fetchAndRenderMatches(wc, { skipMatchRender = false } = {}) {
       if (!wc) return;
+      resetComputeCache();
       const fallback = STATIC_FALLBACK_MATCHES[wc.year] || STATIC_FALLBACK_MATCHES[2026] || [];
+      const previousMatches = chartMatches;
+      const now = Date.now();
+
+      const applyMatches = (matches, isFallback, source) => {
+        matches.forEach(m => lastRefreshTime.set(m.id, now));
+        chartMatches = matches;
+        if (!skipMatchRender) renderMatches(matches, wc);
+        if (matchesResultsChanged(previousMatches, chartMatches)) {
+          initCharts();
+          renderRankingsAndScorers();
+        }
+        updateLastRefresh(isFallback, source);
+      };
 
       // Pour la Coupe du Monde 2026, privilégier l'API worldcup26.ir (plus fiable / live)
       if (wc.year === 2026) {
-        // 1) Afficher immédiatement le fallback statique pour ne pas laisser l'utilisateur attendre
-        const now = Date.now();
-        fallback.forEach(m => lastRefreshTime.set(m.id, now));
-        chartMatches = fallback;
-        renderMatches(fallback, wc);
-        initCharts();
-        renderRankingsAndScorers();
-        updateLastRefresh(true);
+        // 1) Afficher immédiatement le fallback statique
+        applyMatches(fallback, true);
 
         // 2) En arrière-plan, tenter de récupérer les données live
         const wc26Matches = await fetchWorldcup26Matches();
         if (wc26Matches && wc26Matches.length) {
-          wc26Matches.forEach(m => lastRefreshTime.set(m.id, now));
-          chartMatches = wc26Matches;
-          renderMatches(wc26Matches, wc);
-          initCharts();
-          renderRankingsAndScorers();
-          updateLastRefresh(false, 'worldcup26.ir');
+          applyMatches(wc26Matches, false, 'worldcup26.ir');
         }
         return;
       }
@@ -2484,42 +2662,24 @@
       await fetchWorldcup26Scorers();
       // La clé d'API football-data.org gratuite n'autorise que localhost en CORS.
       if (!API_KEY || !isLocalhostOrigin()) {
-        const now = Date.now();
-        fallback.forEach(m => lastRefreshTime.set(m.id, now));
-        chartMatches = fallback;
-        renderMatches(fallback, wc);
-        initCharts();
-        renderRankingsAndScorers();
-        updateLastRefresh(true);
+        applyMatches(fallback, true);
         return;
       }
       try {
-        const [res] = await Promise.all([
-          fetch(
-            `https://api.football-data.org/v4/competitions/${WC_COMPETITION_CODE}/matches?nocache=${Date.now()}`,
-            { headers: { 'X-Auth-Token': API_KEY } }
-          )
-        ]);
+        const res = await fetch(
+          `https://api.football-data.org/v4/competitions/${WC_COMPETITION_CODE}/matches?nocache=${Date.now()}`,
+          { headers: { 'X-Auth-Token': API_KEY } }
+        );
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
-        const now = Date.now();
         const liveMatches = data.matches.filter(m => m.status === 'IN_PLAY' || m.status === 'PAUSED' || m.status === 'LIVE');
         if (liveMatches.length) {
           console.log('[API]', liveMatches.length, 'match(s) en cours —', new Date().toLocaleTimeString('fr-FR'));
           liveMatches.forEach(m => console.log('  ', m.homeTeam.name, m.score?.fullTime?.home ?? '-', '–', m.score?.fullTime?.away ?? '-', m.awayTeam.name, '|', m.minute ? m.minute + "'" : ''));
         }
-        data.matches.forEach(m => lastRefreshTime.set(m.id, now));
-        chartMatches = data.matches;
-        renderMatches(data.matches, wc);
-        initCharts();
-        renderRankingsAndScorers();
-        updateLastRefresh(false);
+        applyMatches(data.matches, false);
       } catch (e) {
-        chartMatches = fallback;
-        renderMatches(fallback, wc);
-        initCharts();
-        renderRankingsAndScorers();
-        updateLastRefresh(true);
+        applyMatches(fallback, true);
       }
     }
 
@@ -2551,7 +2711,7 @@
       const tabs = document.querySelectorAll('.tab');
       if (!tabs.length) return;
       const counts = { live: 0, upcoming: 0, finished: 0 };
-      (matches || []).forEach(m => { counts[getMatchEffectiveStatus(m)]++; });
+      (matches || []).forEach(m => { counts[getMatchEffectiveStatusCached(m)]++; });
       // Au chargement : live si match en cours, sinon à venir
       let best = 'upcoming';
       if (counts.live > 0) best = 'live';
@@ -2674,12 +2834,11 @@
       renderTeams(currentWC.year);
       renderNextWorldCups();
       updateCountdowns();
-      await fetchAndRenderMatches(currentWC);
+      // Premier chargement : ne pas rendre les matchs ici, on le fait une seule fois après selectBestTab
+      await fetchAndRenderMatches(currentWC, { skipMatchRender: true });
       selectBestTab(chartMatches);
-      // Appliquer le filtre de l'onglet par défaut sélectionné
       renderMatches(chartMatches, currentWC);
       initTabs();
-      try { renderRankingsAndScorers(); } catch (e) { console.warn('renderRankingsAndScorers failed:', e); }
       initTheme();
       initScrollReveal();
       updateFooterTimes();
@@ -2688,11 +2847,26 @@
       const intervalMs = currentWC.isLive ? (currentWC.year === 2026 ? 120000 : 15000) : currentWC.isSoon ? 300000 : 3600000;
       if (refreshInterval) clearInterval(refreshInterval);
       refreshInterval = setInterval(async () => {
+        if (!isPageVisible) return;
         currentWC = await autoDiscoverWorldCup();
         await fetchAndRenderMatches(currentWC);
         updateCountdowns();
         updateFooterTimes();
       }, intervalMs);
+
+      // Pause le refresh auto quand l'onglet est masqué ; rattrape au retour
+      document.addEventListener('visibilitychange', () => {
+        isPageVisible = !document.hidden;
+        if (isPageVisible) {
+          setTimeout(async () => {
+            if (!currentWC) return;
+            currentWC = await autoDiscoverWorldCup();
+            await fetchAndRenderMatches(currentWC);
+            updateCountdowns();
+            updateFooterTimes();
+          }, 0);
+        }
+      });
 
       setInterval(async () => {
         const newWC = await autoDiscoverWorldCup();
