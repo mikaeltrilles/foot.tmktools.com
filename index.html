@@ -1768,8 +1768,12 @@
       const elapsed = m.time_elapsed;
       const isWc26Live = elapsed && elapsed !== 'notstarted' && elapsed !== 'finished' && (elapsed === 'live' || !isNaN(Number(elapsed)));
       if (isWc26Live || m.status === 'IN_PLAY' || m.status === 'PAUSED' || m.status === 'LIVE') return 'live';
+      // Si worldcup26.ir dit explicitement "notstarted", on fait confiance à l'API
+      // et on laisse le match dans "À venir" même si l'horloge est passée.
+      if (elapsed === 'notstarted') return 'upcoming';
       const now = new Date();
       const matchTime = new Date(m.utcDate);
+      // Fallback temporel uniquement en l'absence de flag explicite.
       // Si le match a déjà commencé/passé selon l'horloge, on le considère comme live
       // pendant une fenêtre de 3h (durée max match + prolongations + tirs au but).
       // Au-delà, et en l'absence de flag live/terminé explicite, on le considère terminé.
