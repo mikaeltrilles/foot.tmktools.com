@@ -1478,15 +1478,43 @@
     function parseScorerString(raw) {
       const cleaned = String(raw).trim();
       if (!cleaned) return null;
-      // Format : "F. Balogun 45'+5'", "J. Quiñones 9'", "D. Bobadilla 7'(OG)", "G. Reyna 90'+8'"
-      const match = cleaned.match(/^(.+?)\s+(\d+(?:'\+\d+)?')(.+)?$/);
+      // Format : "F. Balogun 45'+5'", "J. Quiñones 9'", "D. Bobadilla 7'(OG)", "G. Reyna 90'+8'", "K. Mbappé 105'", "K. Mbappé 90 + 8'"
+      const match = cleaned.match(/^(.+?)\s+(\d+(?:\s*\+\s*\d+)?)\s*(?:'|")?\s*(.*)$/);
       if (match) {
-        const name = match[1].trim();
-        const minute = match[2].replace(/'/g, '');
-        const suffix = (match[3] || '').trim();
+        let name = match[1].trim();
+        let minute = match[2].replace(/\s+/g, '').replace(/['"]/g, '');
+        let suffix = match[3].trim();
+        // Cas "90'+8'" où l'apostrophe coupe la minute : récupérer le "+8" restant
+        const extraMinuteMatch = suffix.match(/^(\+\d+)\s*(?:'|")?\s*(.*)$/);
+        if (extraMinuteMatch) {
+          minute += extraMinuteMatch[1];
+          suffix = extraMinuteMatch[2].trim();
+        }
         return { scorer: name + (suffix ? ' ' + suffix : ''), minute };
       }
       return { scorer: cleaned, minute: '' };
+    }
+
+    function normalizeScorerName(name) {
+      if (!name) return '';
+      return String(name)
+        .toLowerCase()
+        .normalize('NFD').replace(/[̀-ͯ]/g, '')
+        .replace(/\s+/g, ' ')
+        .replace(/\s*\([^)]+\)\s*$/g, '') // marqueurs (P), (OG), (CSC)…
+        .replace(/\s*\+\d+['"]?\s*$/g, '') // fragments de minute résiduels
+        .replace(/[^a-z0-9 ]/g, '')
+        .trim();
+    }
+
+    function isBetterScorerDisplay(newName, currentName) {
+      if (!currentName) return true;
+      const dirtyRe = /\d|'|"|\(\w+\)|\+/;
+      const newDirty = dirtyRe.test(newName);
+      const currentDirty = dirtyRe.test(currentName);
+      if (currentDirty && !newDirty) return true;
+      if (!currentDirty && newDirty) return false;
+      return newName.length > currentName.length;
     }
 
     function getScorersForMatch(m) {
@@ -2106,9 +2134,16 @@
         const goals = getGoalScorersCached(m) || [];
         goals.forEach(g => {
           if (!g || !g.scorer) return;
-          const key = g.scorer;
+          // Clé normalisée pour fusionner les variantes d'un même buteur
+          // (ex: fragments de minute en prolongation, suffixes (P)/(OG), accents)
+          const key = normalizeScorerName(g.scorer);
+          if (!key) return;
           if (!scorers[key]) {
             scorers[key] = { name: g.scorer, count: 0, team: null, country: null, goals: [] };
+          }
+          // Garder le nom d'affichage le plus propre / le plus complet
+          if (isBetterScorerDisplay(g.scorer, scorers[key].name)) {
+            scorers[key].name = g.scorer;
           }
           scorers[key].count += 1;
           // Pays d'appartenance = équipe du buteur
