@@ -606,13 +606,13 @@
 
     /* Cartes buteurs */
     .scorer-card {
-      display: flex; align-items: center; gap: var(--space-2);
+      display: flex; align-items: flex-start; gap: var(--space-2);
       background: var(--color-surface); border: 1px solid var(--color-border);
       border-radius: var(--radius-md); padding: var(--space-2);
       position: relative;
     }
     @media (min-width: 768px) {
-      .scorer-card { gap: var(--space-4); padding: var(--space-3) var(--space-4); }
+      .scorer-card { gap: var(--space-3); padding: var(--space-3) var(--space-4); }
     }
     .scorer-rank {
       width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;
@@ -620,9 +620,20 @@
       font-family: var(--font-display); font-weight: 700; font-size: var(--text-sm);
       flex-shrink: 0;
     }
-    .scorer-info { flex: 1; min-width: 0; padding-right: var(--space-8); }
-    .scorer-name { font-weight: 600; color: var(--color-text); }
-    .scorer-meta { font-size: var(--text-xs); color: var(--color-text-muted); margin-top: var(--space-1); }
+    .scorer-main { flex: 1; min-width: 0; padding-right: var(--space-8); }
+    .scorer-header { display: flex; align-items: center; gap: var(--space-2); }
+    .scorer-header .flag-tiny { margin-right: 0; }
+    .scorer-name { font-weight: 600; color: var(--color-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .scorer-country { font-size: var(--text-xs); color: var(--color-text-muted); margin-top: var(--space-1); }
+    .scorer-goals-list { margin-top: var(--space-2); display: flex; flex-direction: column; gap: var(--space-1); }
+    .scorer-goal-line {
+      display: flex; align-items: center; gap: var(--space-2);
+      font-size: 11px; color: var(--color-text-muted);
+      background: var(--color-surface-2); border-radius: var(--radius-sm);
+      padding: var(--space-1) var(--space-2);
+    }
+    .scorer-goal-minute { font-weight: 700; color: var(--color-primary); min-width: 28px; }
+    .scorer-goal-opponent { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .scorer-flag {
       position: absolute;
       top: var(--space-2);
@@ -636,6 +647,7 @@
     .scorer-flag img { width: 100%; height: 100%; object-fit: cover; display: block; }
     @media (min-width: 768px) {
       .scorer-flag { top: var(--space-3); right: var(--space-4); width: 40px; height: 28px; }
+      .scorer-goal-line { font-size: var(--text-xs); }
     }
     @media (min-width: 768px) { #scorers-list { grid-template-columns: repeat(2, 1fr); } }
     @media (min-width: 1200px) { #scorers-list { grid-template-columns: repeat(3, 1fr); } }
@@ -2014,15 +2026,29 @@
       if (!container) return;
       const scorers = {};
       matches.forEach(m => {
+        const homeTeam = m.homeTeam?.name || '';
+        const awayTeam = m.awayTeam?.name || '';
         const goals = getGoalScorers(m) || [];
         goals.forEach(g => {
           if (!g || !g.scorer) return;
           const key = g.scorer;
-          if (!scorers[key]) scorers[key] = { name: g.scorer, count: 0, teams: new Set(), minutes: [] };
+          if (!scorers[key]) {
+            scorers[key] = { name: g.scorer, count: 0, team: null, country: null, goals: [] };
+          }
           scorers[key].count += 1;
-          const teamName = g.side === 'home' ? (m.homeTeam?.name || '') : (m.awayTeam?.name || '');
-          if (teamName) scorers[key].teams.add(teamName);
-          if (g.minute) scorers[key].minutes.push(String(g.minute));
+          // Pays d'appartenance = équipe du buteur
+          const teamName = g.side === 'home' ? homeTeam : awayTeam;
+          if (teamName) {
+            scorers[key].team = teamName;
+            scorers[key].country = teamName;
+          }
+          // Équipe adverse
+          const opponent = g.side === 'home' ? awayTeam : homeTeam;
+          scorers[key].goals.push({
+            minute: String(g.minute ?? ''),
+            opponent: opponent || 'Adversaire inconnu',
+            matchId: m.id
+          });
         });
       });
       const list = Object.values(scorers).sort((a, b) => b.count - a.count || a.name.localeCompare(b.name, 'fr'));
@@ -2031,17 +2057,37 @@
         return;
       }
       container.innerHTML = list.map((s, i) => {
-        const teamNames = Array.from(s.teams).join(' / ');
-        const minutes = s.minutes.slice(0, 5).join(', ') + (s.minutes.length > 5 ? '...' : '');
-        const teamName = Array.from(s.teams)[0] || '';
-        const flagHtml = teamName ? `<span class="scorer-flag" aria-hidden="true">${flagForTeam(teamName)}</span>` : '';
+        const teamName = s.team || '';
+        const flagCode = teamName ? flagCodeForTeam(teamName) : 'xx';
+        const flagHtml = flagCode !== 'xx'
+          ? `<span class="flag-tiny" aria-hidden="true"><img src="https://flagcdn.com/${flagCode}.svg" alt="" loading="lazy" crossorigin="anonymous"></span>`
+          : '<span class="flag-placeholder" aria-hidden="true"></span>';
+        const topFlagHtml = teamName ? `<span class="scorer-flag" aria-hidden="true">${flagForTeam(teamName)}</span>` : '';
+
+        const goalsList = s.goals
+          .sort((a, b) => String(a.minute).localeCompare(String(b.minute), undefined, { numeric: true }))
+          .map(g => {
+            const oppCode = flagCodeForTeam(g.opponent);
+            const oppFlag = oppCode !== 'xx'
+              ? `<span class="flag-tiny" aria-hidden="true"><img src="https://flagcdn.com/${oppCode}.svg" alt="" loading="lazy" crossorigin="anonymous"></span>`
+              : '<span class="flag-placeholder" aria-hidden="true"></span>';
+            return `<div class="scorer-goal-line">
+              <span class="scorer-goal-minute">${g.minute}'</span>
+              <span class="scorer-goal-opponent">${oppFlag} ${g.opponent}</span>
+            </div>`;
+          }).join('');
+
         return `
           <article class="scorer-card" role="listitem">
-            ${flagHtml}
+            ${topFlagHtml}
             <div class="scorer-rank">${i + 1}</div>
-            <div class="scorer-info">
-              <div class="scorer-name">${s.name}</div>
-              <div class="scorer-meta">${teamNames} · ${s.count} but${s.count > 1 ? 's' : ''}${minutes ? ' · ' + minutes + '\'' : ''}</div>
+            <div class="scorer-main">
+              <div class="scorer-header">
+                ${flagHtml}
+                <span class="scorer-name">${s.name}</span>
+              </div>
+              <div class="scorer-country">${teamName} · ${s.count} but${s.count > 1 ? 's' : ''}</div>
+              <div class="scorer-goals-list">${goalsList}</div>
             </div>
           </article>`;
       }).join('');
