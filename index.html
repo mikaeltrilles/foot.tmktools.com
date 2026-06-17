@@ -579,11 +579,9 @@
       font-size: var(--text-xs); font-weight: 600;
     }
     .knockout-team + .knockout-team { border-top: 1px solid var(--color-border); }
-    .knockout-team.winner { color: #2ecc71; }
-    .knockout-team.loser { color: var(--color-text-muted); }
+    .knockout-team.known { color: var(--color-text); }
     .knockout-team.placeholder { color: var(--color-text-muted); font-style: italic; }
     .knockout-team.placeholder .knockout-score { color: var(--color-text-faint); }
-    [data-theme="light"] .knockout-team.winner { color: #27ae60; }
     .knockout-team-name { display: flex; align-items: center; gap: var(--space-1); min-width: 0; }
     .knockout-team-name .flag-tiny { margin-right: 0; }
     .knockout-team-name span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -1842,72 +1840,20 @@
       }));
     }
 
-    function teamStrength(stats) {
-      if (!stats || stats.played === 0) return -1;
-      return stats.points * 100000 + (stats.gf - stats.ga + 1000) * 100 + stats.gf;
-    }
-
-    function isResolvedTeam(team) {
-      return !!(team && team.team && !team.team.startsWith('['));
-    }
-
-    function simulateKnockoutMatch(home, away) {
-      const homeStr = teamStrength(home);
-      const awayStr = teamStrength(away);
-      const diff = homeStr - awayStr;
-      const homeAdvantage = 5000;
-      const effectiveDiff = diff + homeAdvantage;
-
-      // Si l'une des équipes n'est pas résolue, on ne simule pas
-      if (homeStr < 0 || awayStr < 0) {
-        return { winner: null, loser: null, homeScore: '-', awayScore: '-', penalties: false, unresolved: true };
+    function getKnockoutSlot(standings, letter, place) {
+      const group = `Groupe ${letter}`;
+      const arr = standings[group];
+      if (!arr || !arr[place - 1]) {
+        return { type: 'placeholder', label: `${place === 1 ? '1er' : place + 'ème'} Groupe ${letter}`, team: null };
       }
-
-      if (Math.abs(effectiveDiff) < 3000) {
-        const winner = effectiveDiff >= 0 ? home : away;
-        const loser = effectiveDiff >= 0 ? away : home;
-        return { winner, loser, homeScore: 1, awayScore: 1, penalties: true, unresolved: false };
-      }
-
-      const winner = effectiveDiff > 0 ? home : away;
-      const loser = effectiveDiff > 0 ? away : home;
-      const scoreDiff = Math.min(5, Math.max(1, Math.floor(Math.abs(effectiveDiff) / 15000)));
-      const winnerScore = 1 + Math.floor(scoreDiff / 2);
-      const loserScore = Math.max(0, winnerScore - scoreDiff);
-      return {
-        winner,
-        loser,
-        homeScore: effectiveDiff > 0 ? winnerScore : loserScore,
-        awayScore: effectiveDiff > 0 ? loserScore : winnerScore,
-        penalties: false,
-        unresolved: false
-      };
+      // Si le classement provisoire montre cette équipe à cette place (même si non définitif), on l'affiche
+      return { type: 'team', label: arr[place - 1].team, stats: arr[place - 1] };
     }
 
-    function computeKnockoutBracket(matches) {
-      const standings = computeGroupStandings(matches);
-      const groupOrder = Object.keys(standings).sort((a, b) => a.localeCompare(b, 'fr'));
-      if (groupOrder.length < 12) return null;
-
-      const byGroup = {};
-      groupOrder.forEach(g => {
-        const letter = g.replace(/^Groupe\s+/i, '').toUpperCase();
-        byGroup[letter] = standings[g];
-      });
-
-      const getPlace = (letter, place) => {
-        const arr = byGroup[letter];
-        if (!arr || !arr[place - 1]) {
-          return { team: `[${place === 1 ? '1er' : place + 'ème'} Groupe ${letter}]`, group: letter, place, played: 0, points: 0, gf: 0, ga: 0 };
-        }
-        // Si la position n'est pas définitivement acquise (égalité possible), on affiche quand même l'équipe si elle est là
-        return { ...arr[place - 1], group: letter, place };
-      };
-
-      // Meilleurs 3èmes
+    function getBestThirdSlot(standings, index) {
       const allThirds = [];
-      Object.entries(byGroup).forEach(([letter, teams]) => {
-        if (teams[2]) allThirds.push({ ...teams[2], group: letter, place: 3 });
+      Object.entries(standings).forEach(([group, teams]) => {
+        if (teams[2]) allThirds.push({ ...teams[2], group: group.replace(/^Groupe\s+/i, ''), place: 3 });
       });
       const bestThirds = allThirds
         .sort((a, b) => {
@@ -1920,67 +1866,55 @@
         })
         .slice(0, 8);
 
-      const getThird = (index) => {
-        const t = bestThirds[index];
-        if (t) return t;
-        return { team: `[3ème qualifié #${index + 1}]`, place: 3, played: 0, points: 0, gf: 0, ga: 0 };
-      };
+      const t = bestThirds[index];
+      if (t) return { type: 'team', label: t.team, stats: t };
+      return { type: 'placeholder', label: `3ème qualifié #${index + 1}`, team: null };
+    }
 
-      // Appariements simplifiés 2026 (32èmes/16èmes)
-      const r32Mapping = [
-        { home: () => getPlace('A', 1), away: () => getPlace('C', 2) },
-        { home: () => getPlace('B', 1), away: () => getThird(0) },
-        { home: () => getPlace('F', 1), away: () => getThird(1) },
-        { home: () => getPlace('E', 1), away: () => getThird(2) },
-        { home: () => getPlace('H', 1), away: () => getThird(3) },
-        { home: () => getPlace('G', 1), away: () => getThird(4) },
-        { home: () => getPlace('K', 1), away: () => getThird(5) },
-        { home: () => getPlace('D', 1), away: () => getPlace('B', 2) },
-        { home: () => getPlace('L', 1), away: () => getThird(6) },
-        { home: () => getPlace('I', 1), away: () => getPlace('J', 2) },
-        { home: () => getPlace('J', 1), away: () => getPlace('I', 2) },
-        { home: () => getPlace('C', 1), away: () => getPlace('A', 2) },
-        { home: () => getPlace('G', 1), away: () => getPlace('H', 2) },
-        { home: () => getPlace('H', 1), away: () => getPlace('G', 2) },
-        { home: () => getPlace('E', 1), away: () => getPlace('F', 2) },
-        { home: () => getPlace('F', 1), away: () => getPlace('E', 2) },
+    function computeKnockoutBracket(matches) {
+      const standings = computeGroupStandings(matches);
+      const groupOrder = Object.keys(standings).sort((a, b) => a.localeCompare(b, 'fr'));
+      if (groupOrder.length < 12) return null;
+
+      // Format 2026 : 32 équipes (12 groupes × 2 premiers + 8 meilleurs 3èmes)
+      const roundOf32 = [
+        { home: getKnockoutSlot(standings, 'A', 1), away: getKnockoutSlot(standings, 'C', 2) },
+        { home: getKnockoutSlot(standings, 'B', 1), away: getBestThirdSlot(standings, 0) },
+        { home: getKnockoutSlot(standings, 'F', 1), away: getBestThirdSlot(standings, 1) },
+        { home: getKnockoutSlot(standings, 'E', 1), away: getBestThirdSlot(standings, 2) },
+        { home: getKnockoutSlot(standings, 'H', 1), away: getBestThirdSlot(standings, 3) },
+        { home: getKnockoutSlot(standings, 'G', 1), away: getBestThirdSlot(standings, 4) },
+        { home: getKnockoutSlot(standings, 'K', 1), away: getBestThirdSlot(standings, 5) },
+        { home: getKnockoutSlot(standings, 'D', 1), away: getKnockoutSlot(standings, 'B', 2) },
+        { home: getKnockoutSlot(standings, 'L', 1), away: getBestThirdSlot(standings, 6) },
+        { home: getKnockoutSlot(standings, 'I', 1), away: getKnockoutSlot(standings, 'J', 2) },
+        { home: getKnockoutSlot(standings, 'J', 1), away: getKnockoutSlot(standings, 'I', 2) },
+        { home: getKnockoutSlot(standings, 'C', 1), away: getKnockoutSlot(standings, 'A', 2) },
+        { home: getKnockoutSlot(standings, 'G', 1), away: getKnockoutSlot(standings, 'H', 2) },
+        { home: getKnockoutSlot(standings, 'H', 1), away: getKnockoutSlot(standings, 'G', 2) },
+        { home: getKnockoutSlot(standings, 'E', 1), away: getKnockoutSlot(standings, 'F', 2) },
+        { home: getKnockoutSlot(standings, 'F', 1), away: getKnockoutSlot(standings, 'E', 2) },
       ];
 
-      function createRound(mapping) {
-        return mapping.map(m => {
-          const home = m.home();
-          const away = m.away();
-          const result = simulateKnockoutMatch(home, away);
-          return { home, away, result };
-        });
-      }
-
-      const roundOf32 = createRound(r32Mapping);
-
-      function nextRound(matches) {
-        const next = [];
-        for (let i = 0; i < matches.length; i += 2) {
-          const m1 = matches[i];
-          const m2 = matches[i + 1];
-          if (!m1 || !m2) continue;
-
-          const home = m1.result && m1.result.winner ? m1.result.winner : { team: `[Vainqueur ${i + 1}]`, played: 0, points: 0, gf: 0, ga: 0 };
-          const away = m2.result && m2.result.winner ? m2.result.winner : { team: `[Vainqueur ${i + 2}]`, played: 0, points: 0, gf: 0, ga: 0 };
-          const result = simulateKnockoutMatch(home, away);
-          next.push({ home, away, result });
-        }
-        return next;
-      }
-
-      const roundOf16 = nextRound(roundOf32);
-      const quarterFinals = nextRound(roundOf16);
-      const semiFinals = nextRound(quarterFinals);
-      const finalMatch = semiFinals.length >= 2
-        ? [{ home: semiFinals[0].result.winner, away: semiFinals[1].result.winner, result: simulateKnockoutMatch(semiFinals[0].result.winner, semiFinals[1].result.winner) }]
-        : [];
-      const thirdPlaceMatch = semiFinals.length >= 2
-        ? [{ home: semiFinals[0].result.loser || semiFinals[0].home, away: semiFinals[1].result.loser || semiFinals[1].home, result: simulateKnockoutMatch(semiFinals[0].result.loser || semiFinals[0].home, semiFinals[1].result.loser || semiFinals[1].home) }]
-        : [];
+      // Tours suivants : on ne fait que des slots placeholders, pas de simulation
+      const roundOf16 = Array.from({ length: 8 }, (_, i) => ({
+        home: { type: 'placeholder', label: `Vainqueur 16ème ${i * 2 + 1}` },
+        away: { type: 'placeholder', label: `Vainqueur 16ème ${i * 2 + 2}` }
+      }));
+      const quarterFinals = Array.from({ length: 4 }, (_, i) => ({
+        home: { type: 'placeholder', label: `Vainqueur 8ème ${i * 2 + 1}` },
+        away: { type: 'placeholder', label: `Vainqueur 8ème ${i * 2 + 2}` }
+      }));
+      const semiFinals = [
+        { home: { type: 'placeholder', label: 'Vainqueur quart 1' }, away: { type: 'placeholder', label: 'Vainqueur quart 2' } },
+        { home: { type: 'placeholder', label: 'Vainqueur quart 3' }, away: { type: 'placeholder', label: 'Vainqueur quart 4' } }
+      ];
+      const finalMatch = [
+        { home: { type: 'placeholder', label: 'Vainqueur demi 1' }, away: { type: 'placeholder', label: 'Vainqueur demi 2' } }
+      ];
+      const thirdPlaceMatch = [
+        { home: { type: 'placeholder', label: 'Perdant demi 1' }, away: { type: 'placeholder', label: 'Perdant demi 2' } }
+      ];
 
       return {
         rounds: [
@@ -2003,37 +1937,30 @@
         return;
       }
 
-      const renderTeam = (team, isWinner, showScore = '-') => {
-        if (!team) return '<div class="knockout-team"><span class="knockout-team-name"><span class="flag-placeholder" aria-hidden="true"></span> <span>TBD</span></span><span class="knockout-score">-</span></div>';
-        const isPlaceholder = team.team && team.team.startsWith('[');
-        const code = isPlaceholder ? 'xx' : flagCodeForTeam(team.team);
-        const flagHtml = code !== 'xx' ? `<span class="flag-tiny" aria-hidden="true"><img src="https://flagcdn.com/${code}.svg" alt="" loading="lazy" crossorigin="anonymous"></span>` : '<span class="flag-placeholder" aria-hidden="true"></span>';
-        const teamClass = isPlaceholder ? 'placeholder' : (isWinner ? 'winner' : 'loser');
+      const renderSlot = (slot) => {
+        const isPlaceholder = slot.type === 'placeholder';
+        const teamName = isPlaceholder ? slot.label : (slot.label || slot.team);
+        const code = isPlaceholder ? 'xx' : flagCodeForTeam(teamName);
+        const flagHtml = code !== 'xx'
+          ? `<span class="flag-tiny" aria-hidden="true"><img src="https://flagcdn.com/${code}.svg" alt="" loading="lazy" crossorigin="anonymous"></span>`
+          : '<span class="flag-placeholder" aria-hidden="true"></span>';
+        const teamClass = isPlaceholder ? 'placeholder' : 'known';
         return `<div class="knockout-team ${teamClass}">
-          <span class="knockout-team-name">${flagHtml} <span>${team.team}</span></span>
-          <span class="knockout-score">${showScore}</span>
+          <span class="knockout-team-name">${flagHtml} <span>${teamName}</span></span>
+          <span class="knockout-score">-</span>
         </div>`;
       };
 
       container.innerHTML = `<div class="knockout-rounds">${bracket.rounds.map((round, roundIndex) => {
-        const isFinalRound = roundIndex === bracket.rounds.length - 1;
         return `<div class="knockout-round" data-round="${roundIndex}">
           <div class="knockout-round-title">${round.name}</div>
-          ${round.matches.map((m, matchIndex) => {
-            const unresolved = m.result.unresolved;
-            const homeScore = unresolved ? '-' : m.result.homeScore;
-            const awayScore = unresolved ? '-' : m.result.awayScore;
-            const homeWinner = !unresolved && m.result.winner === m.home;
-            const awayWinner = !unresolved && m.result.winner === m.away;
-            const scoreDisplay = unresolved ? '-' : (m.result.penalties
-              ? `${homeScore} - ${awayScore} (tab)`
-              : `${homeScore} - ${awayScore}`);
-            return `<article class="knockout-match" role="listitem" style="${isFinalRound && matchIndex === 1 ? 'margin-top: var(--space-6);' : ''}">
-              ${renderTeam(m.home, homeWinner, homeScore)}
-              ${renderTeam(m.away, awayWinner, awayScore)}
-              <div style="text-align: center; font-size: 10px; color: var(--color-text-muted); margin-top: var(--space-1);">${scoreDisplay}</div>
-            </article>`;
-          }).join('')}
+          ${round.matches.map((m) => `
+            <article class="knockout-match" role="listitem">
+              ${renderSlot(m.home)}
+              ${renderSlot(m.away)}
+              <div style="text-align: center; font-size: 10px; color: var(--color-text-muted); margin-top: var(--space-1);">-</div>
+            </article>`
+          ).join('')}
         </div>`;
       }).join('')}</div>`;
     }
