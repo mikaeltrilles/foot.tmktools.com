@@ -1090,6 +1090,7 @@
     let computeCache = {};
     let wc26FetchPromise = null;
     let lastWc26FetchSource = null; // 'network', 'cache', 'stale-cache', 'none'
+    let wc26ApiFailures = 0; // compteur d'échecs consécutifs pour backoff
     let isPageVisible = !document.hidden;
 
     const STATIC_FALLBACK_TEAMS = {
@@ -1567,7 +1568,7 @@
         const raw = localStorage.getItem('wc26-cache');
         if (!raw) return null;
         const parsed = JSON.parse(raw);
-        const ttl = 60 * 1000; // 60 secondes
+        const ttl = 5 * 60 * 1000; // 5 minutes quand l'API est instable
         if (Date.now() - parsed.ts > ttl) return null;
         return parsed.data;
       } catch (e) {
@@ -1600,6 +1601,12 @@
     async function fetchWorldcup26Matches({ preferFresh = false } = {}) {
       const cached = getWc26Cache();
 
+      // Si l'API a échoué plusieurs fois, ne pas insister : utiliser le cache tant qu'il existe
+      if (wc26ApiFailures >= 3 && cached && cached.games && Array.isArray(cached.games)) {
+        lastWc26FetchSource = 'cache';
+        return parseWorldcup26Payload(cached);
+      }
+
       // Mode normal : cache frais suffisant pour éviter les 429
       if (!preferFresh && cached && cached.games && Array.isArray(cached.games)) {
         lastWc26FetchSource = 'cache';
@@ -1611,27 +1618,35 @@
 
       wc26FetchPromise = (async () => {
         const url = 'https://worldcup26.ir/get/games';
-        const retries = 2;
         let lastError = null;
-        for (let i = 0; i <= retries; i++) {
+        for (let i = 0; i < 2; i++) {
           try {
-            if (i > 0) await new Promise(r => setTimeout(r, 1000 * i));
-            const res = await fetchWithTimeout(url, { cache: 'no-store' }, 15000);
-            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            if (i > 0) await new Promise(r => setTimeout(r, 1500));
+            const res = await fetchWithTimeout(url, { cache: 'no-store' }, 8000);
+            if (!res.ok) {
+              // Erreur serveur : pas la peine de réessayer immédiatement
+              if (res.status >= 500 && res.status < 600) {
+                throw new Error(`server error ${res.status}`);
+              }
+              throw new Error(`HTTP ${res.status}`);
+            }
             const data = await res.json();
             if (!data.games || !Array.isArray(data.games)) throw new Error('invalid payload');
             setWc26Cache(data);
+            wc26ApiFailures = 0;
             lastWc26FetchSource = 'network';
             return parseWorldcup26Payload(data);
           } catch (e) {
             lastError = e;
-            if (e.message === 'timeout after 15000ms') {
+            if (e.message === 'timeout after 8000ms') {
               console.warn(`[worldcup26] fetch matches attempt ${i + 1} timed out`);
             } else {
               console.warn(`[worldcup26] fetch matches attempt ${i + 1} failed:`, e.message || e);
             }
+            if (String(e.message).startsWith('server error')) break; // pas de retry sur 5xx
           }
         }
+        wc26ApiFailures += 1;
         // En cas d'erreur, utiliser le cache même périmé
         if (cached && cached.games) {
           console.warn('[worldcup26] using stale cache after network failure');
@@ -2715,6 +2730,8 @@
           if (wc26Matches && wc26Matches.length) {
             applyMatches(wc26Matches, false, 'worldcup26.ir');
           }
+        }).catch(() => {
+          // Fallback déjà affiché, ignorer silencieusement
         });
         return;
       }
@@ -2921,7 +2938,7 @@
       fetchAndRenderMatches(currentWC);
 
       // 3) Si seul le cache frais a été utilisé, forcer un refresh réseau pour être à jour (non bloquant)
-      if (currentWC.year === 2026) {
+      if (currentWC.year === 2026 && lastWc26FetchSource === 'cache') {
         setTimeout(() => refreshMatchesSilently(currentWC), 0);
       }
 
