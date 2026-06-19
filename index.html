@@ -1091,6 +1091,7 @@
     let wc26FetchPromise = null;
     let lastWc26FetchSource = null; // 'network', 'cache', 'stale-cache', 'none'
     let wc26ApiFailures = 0; // compteur d'échecs consécutifs pour backoff
+    let wc26FirstFetchDone = false; // indique si le premier appel frais a eu lieu
     let isPageVisible = !document.hidden;
 
     const STATIC_FALLBACK_TEAMS = {
@@ -1617,12 +1618,12 @@
       if (wc26FetchPromise) return wc26FetchPromise;
 
       wc26FetchPromise = (async () => {
-        const url = 'https://worldcup26.ir/get/games';
+        const url = '/api/wc26-proxy.php';
         let lastError = null;
         for (let i = 0; i < 2; i++) {
           try {
             if (i > 0) await new Promise(r => setTimeout(r, 1500));
-            const res = await fetchWithTimeout(url, { cache: 'no-store' }, 8000);
+            const res = await fetchWithTimeout(url, { cache: 'no-store' }, 15000);
             if (!res.ok) {
               // Erreur serveur : pas la peine de réessayer immédiatement
               if (res.status >= 500 && res.status < 600) {
@@ -1634,11 +1635,12 @@
             if (!data.games || !Array.isArray(data.games)) throw new Error('invalid payload');
             setWc26Cache(data);
             wc26ApiFailures = 0;
+            wc26FirstFetchDone = true;
             lastWc26FetchSource = 'network';
             return parseWorldcup26Payload(data);
           } catch (e) {
             lastError = e;
-            if (e.message === 'timeout after 8000ms') {
+            if (e.message === 'timeout after 15000ms') {
               console.warn(`[worldcup26] fetch matches attempt ${i + 1} timed out`);
             } else {
               console.warn(`[worldcup26] fetch matches attempt ${i + 1} failed:`, e.message || e);
@@ -1647,6 +1649,7 @@
           }
         }
         wc26ApiFailures += 1;
+        wc26FirstFetchDone = true;
         // En cas d'erreur, utiliser le cache même périmé
         if (cached && cached.games) {
           console.warn('[worldcup26] using stale cache after network failure');
@@ -2714,8 +2717,11 @@
         chartMatches = matches;
         if (!skipMatchRender) renderMatches(matches, wc);
         if (matchesResultsChanged(previousMatches, chartMatches)) {
-          initCharts();
-          renderRankingsAndScorers();
+          // Rendre le classement/buteurs au prochain frame pour ne pas bloquer l'affichage des matchs
+          requestAnimationFrame(() => {
+            initCharts();
+            renderRankingsAndScorers();
+          });
         }
         updateLastRefresh(isFallback, source);
       };
@@ -2937,9 +2943,11 @@
       // 2) Charger et afficher : fallback immédiat, puis cache/API en arrière-plan
       fetchAndRenderMatches(currentWC);
 
-      // 3) Si seul le cache frais a été utilisé, forcer un refresh réseau pour être à jour (non bloquant)
-      if (currentWC.year === 2026 && lastWc26FetchSource === 'cache') {
-        setTimeout(() => refreshMatchesSilently(currentWC), 0);
+      // 3) Après que l'UI soit initialisée, forcer un seul appel frais si on n'en a pas encore fait
+      //    ou si le premier chargement venait uniquement du cache. On attend 2s pour laisser
+      //    le fallback s'afficher et ne pas saturer l'API au démarrage.
+      if (currentWC.year === 2026 && (!wc26FirstFetchDone || lastWc26FetchSource === 'cache')) {
+        setTimeout(() => refreshMatchesSilently(currentWC), 2000);
       }
 
       initTabs();
