@@ -1391,6 +1391,7 @@
     }
 
     function getMatchEffectiveStatusCached(m) {
+      if (!computeCache.status) resetComputeCache();
       const key = cacheKeyForMatch(m);
       if (computeCache.status.has(key)) return computeCache.status.get(key);
       const value = getMatchEffectiveStatus(m);
@@ -1399,6 +1400,7 @@
     }
 
     function getGoalScorersCached(m) {
+      if (!computeCache.scorers) resetComputeCache();
       const key = cacheKeyForMatch(m);
       if (computeCache.scorers.has(key)) return computeCache.scorers.get(key);
       const value = getGoalScorers(m);
@@ -2708,11 +2710,12 @@
         // 1) Afficher immédiatement le fallback statique
         applyMatches(fallback, true);
 
-        // 2) Récupérer les données (cache frais ou appel réseau)
-        const wc26Matches = await fetchWorldcup26Matches({ preferFresh });
-        if (wc26Matches && wc26Matches.length) {
-          applyMatches(wc26Matches, false, 'worldcup26.ir');
-        }
+        // 2) Récupérer les données (cache frais ou appel réseau) sans bloquer l'UI
+        fetchWorldcup26Matches({ preferFresh }).then(wc26Matches => {
+          if (wc26Matches && wc26Matches.length) {
+            applyMatches(wc26Matches, false, 'worldcup26.ir');
+          }
+        });
         return;
       }
 
@@ -2910,15 +2913,16 @@
       updateCountdowns();
 
       // 1) Choisir l'onglet optimal d'après le fallback statique
+      resetComputeCache();
       const fallback = STATIC_FALLBACK_MATCHES[currentWC.year] || STATIC_FALLBACK_MATCHES[2026] || [];
       selectBestTab(fallback);
 
-      // 2) Charger et afficher : fallback immédiat, puis cache/API
-      await fetchAndRenderMatches(currentWC);
+      // 2) Charger et afficher : fallback immédiat, puis cache/API en arrière-plan
+      fetchAndRenderMatches(currentWC);
 
-      // 3) Si seul le cache frais a été utilisé, forcer un refresh réseau pour être à jour
-      if (currentWC.year === 2026 && lastWc26FetchSource === 'cache') {
-        await refreshMatchesSilently(currentWC);
+      // 3) Si seul le cache frais a été utilisé, forcer un refresh réseau pour être à jour (non bloquant)
+      if (currentWC.year === 2026) {
+        setTimeout(() => refreshMatchesSilently(currentWC), 0);
       }
 
       initTabs();
