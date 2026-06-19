@@ -1089,6 +1089,7 @@
     let palmaresChartInstance = null;
     let computeCache = {};
     let wc26FetchPromise = null;
+    let lastWc26FetchSource = null; // 'network', 'cache', 'stale-cache', 'none'
     let isPageVisible = !document.hidden;
 
     const STATIC_FALLBACK_TEAMS = {
@@ -1594,14 +1595,16 @@
       }
     }
 
-    async function fetchWorldcup26Matches() {
-      // Utiliser le cache récent pour éviter les 429
+    async function fetchWorldcup26Matches({ preferFresh = false } = {}) {
       const cached = getWc26Cache();
-      if (cached && cached.games && Array.isArray(cached.games)) {
+
+      // Mode normal : cache frais suffisant pour éviter les 429
+      if (!preferFresh && cached && cached.games && Array.isArray(cached.games)) {
+        lastWc26FetchSource = 'cache';
         return parseWorldcup26Payload(cached);
       }
 
-      // Déduplication : si un appel est déjà en cours, réutiliser sa promesse
+      // Déduplication : si un appel frais est déjà en cours, réutiliser sa promesse
       if (wc26FetchPromise) return wc26FetchPromise;
 
       wc26FetchPromise = (async () => {
@@ -1616,6 +1619,7 @@
             const data = await res.json();
             if (!data.games || !Array.isArray(data.games)) throw new Error('invalid payload');
             setWc26Cache(data);
+            lastWc26FetchSource = 'network';
             return parseWorldcup26Payload(data);
           } catch (e) {
             lastError = e;
@@ -1629,8 +1633,10 @@
         // En cas d'erreur, utiliser le cache même périmé
         if (cached && cached.games) {
           console.warn('[worldcup26] using stale cache after network failure');
+          lastWc26FetchSource = 'stale-cache';
           return parseWorldcup26Payload(cached);
         }
+        lastWc26FetchSource = 'none';
         console.error('[worldcup26] fetch matches failed:', lastError?.message || lastError);
         return null;
       })();
@@ -2679,7 +2685,7 @@
       return false;
     }
 
-    async function fetchAndRenderMatches(wc, { skipMatchRender = false } = {}) {
+    async function fetchAndRenderMatches(wc, { skipMatchRender = false, preferFresh = false } = {}) {
       if (!wc) return;
       resetComputeCache();
       const fallback = STATIC_FALLBACK_MATCHES[wc.year] || STATIC_FALLBACK_MATCHES[2026] || [];
@@ -2702,8 +2708,8 @@
         // 1) Afficher immédiatement le fallback statique
         applyMatches(fallback, true);
 
-        // 2) En arrière-plan, tenter de récupérer les données live
-        const wc26Matches = await fetchWorldcup26Matches();
+        // 2) Récupérer les données (cache frais ou appel réseau)
+        const wc26Matches = await fetchWorldcup26Matches({ preferFresh });
         if (wc26Matches && wc26Matches.length) {
           applyMatches(wc26Matches, false, 'worldcup26.ir');
         }
@@ -2881,15 +2887,40 @@
       sections.forEach(s => observer.observe(s));
     }
 
+    async function refreshMatchesSilently(wc) {
+      if (!wc || wc.year !== 2026) return;
+      const previousMatches = chartMatches;
+      const matches = await fetchWorldcup26Matches({ preferFresh: true });
+      if (!matches || !matches.length) return;
+      if (!matchesResultsChanged(previousMatches, matches)) return;
+
+      resetComputeCache();
+      chartMatches = matches;
+      selectBestTab(chartMatches);
+      renderMatches(chartMatches, wc);
+      initCharts();
+      renderRankingsAndScorers();
+      updateLastRefresh(false, 'worldcup26.ir');
+    }
+
     async function initSystem() {
       currentWC = await autoDiscoverWorldCup();
       renderTeams(currentWC.year);
       renderNextWorldCups();
       updateCountdowns();
-      // Premier chargement : ne pas rendre les matchs ici, on le fait une seule fois après selectBestTab
-      await fetchAndRenderMatches(currentWC, { skipMatchRender: true });
-      selectBestTab(chartMatches);
-      renderMatches(chartMatches, currentWC);
+
+      // 1) Choisir l'onglet optimal d'après le fallback statique
+      const fallback = STATIC_FALLBACK_MATCHES[currentWC.year] || STATIC_FALLBACK_MATCHES[2026] || [];
+      selectBestTab(fallback);
+
+      // 2) Charger et afficher : fallback immédiat, puis cache/API
+      await fetchAndRenderMatches(currentWC);
+
+      // 3) Si seul le cache frais a été utilisé, forcer un refresh réseau pour être à jour
+      if (currentWC.year === 2026 && lastWc26FetchSource === 'cache') {
+        await refreshMatchesSilently(currentWC);
+      }
+
       initTabs();
       initTheme();
       initScrollReveal();
@@ -2913,7 +2944,11 @@
           setTimeout(async () => {
             if (!currentWC) return;
             currentWC = await autoDiscoverWorldCup();
-            await fetchAndRenderMatches(currentWC);
+            if (currentWC.year === 2026) {
+              await refreshMatchesSilently(currentWC);
+            } else {
+              await fetchAndRenderMatches(currentWC);
+            }
             updateCountdowns();
             updateFooterTimes();
           }, 0);
