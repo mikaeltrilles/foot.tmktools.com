@@ -2667,7 +2667,7 @@
       // Mettre à jour le badge total de buts
       const badgeValue = document.getElementById('total-goals-value');
       if (badgeValue) badgeValue.textContent = totalGoals;
-      const entries = Object.entries(dataMap).sort((a, b) => b[1] - a[1]).slice(0, 16);
+      const entries = Object.entries(dataMap).filter(e => e[1] > 0).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], 'fr'));
       const labels = entries.map(e => e[0]);
       const data = entries.map(e => e[1]);
       const maxGoals = Math.max(1, ...data);
