@@ -2276,9 +2276,12 @@
         goals.forEach(g => {
           if (!g || !g.scorer) return;
           // Clé normalisée pour fusionner les variantes d'un même buteur
-          // (ex: fragments de minute en prolongation, suffixes (P)/(OG), accents)
-          const key = normalizeScorerName(g.scorer);
-          if (!key) return;
+          // (ex: fragments de minute en prolongation, suffixes (P)/(OG), accents).
+          // On inclut l'équipe pour laquelle le but est compté afin de ne pas mélanger
+          // un but classique et un but contre son camp du même joueur (ex: Aymen Hussein).
+          const teamName = g.side === 'home' ? homeTeam : awayTeam;
+          const key = normalizeScorerName(g.scorer) + '|' + normalizeScorerName(teamName);
+          if (!key || key === '|') return;
           if (!scorers[key]) {
             scorers[key] = { name: g.scorer, count: 0, team: null, country: null, goals: [] };
           }
@@ -2288,7 +2291,6 @@
           }
           scorers[key].count += 1;
           // Pays d'appartenance = équipe du buteur
-          const teamName = g.side === 'home' ? homeTeam : awayTeam;
           if (teamName) {
             scorers[key].team = teamName;
             scorers[key].country = teamName;
@@ -3115,10 +3117,10 @@
       initScrollReveal();
       updateFooterTimes();
 
-      // Pendant la CdM 2026, le proxy PHP met en cache 30s : rafraîchir toutes les 30s
-      // Pendant les matchs en cours, rafraîchir plus fréquemment pour suivre les buts live
+      // Pendant la CdM 2026, le proxy PHP met en cache 30s : rafraîchir toutes les 2 min
+      // Pendant les matchs en cours, rafraîchir plus souvent mais pas trop pour pouvoir lire
       const hasLive = chartMatches.some(m => getMatchEffectiveStatusCached(m) === 'live');
-      const intervalMs = currentWC.isLive ? (currentWC.year === 2026 ? (hasLive ? 15000 : 30000) : 15000) : currentWC.isSoon ? 300000 : 3600000;
+      const intervalMs = currentWC.isLive ? (currentWC.year === 2026 ? (hasLive ? 60000 : 120000) : 60000) : currentWC.isSoon ? 300000 : 3600000;
       if (refreshInterval) clearInterval(refreshInterval);
       refreshInterval = setInterval(async () => {
         if (!isPageVisible) return;
