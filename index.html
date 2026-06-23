@@ -823,7 +823,7 @@
           <span id="total-goals-value">—</span> buts au total
         </span>
       </h2>
-      <div class="chart-container">
+      <div class="chart-container" id="goals-chart-container" style="min-height: 240px;">
         <canvas id="goals-chart" aria-label="Graphique des buts marqués par équipe"></canvas>
       </div>
     </section>
@@ -2670,6 +2670,14 @@
       const entries = Object.entries(dataMap).filter(e => e[1] > 0).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], 'fr'));
       const labels = entries.map(e => e[0]);
       const data = entries.map(e => e[1]);
+
+      // Adapter la hauteur du conteneur au nombre d'équipes (barres horizontales)
+      const container = document.getElementById('goals-chart-container');
+      if (container) {
+        const minHeight = Math.max(240, entries.length * 28 + 40);
+        container.style.height = minHeight + 'px';
+      }
+
       const maxGoals = Math.max(1, ...data);
       // Échelle de couleur verte (faible) → jaune/or (élevé)
       function goalColor(value, alpha) {
