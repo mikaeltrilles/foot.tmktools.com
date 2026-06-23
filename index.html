@@ -819,6 +819,9 @@
       <h2 class="section-title" id="buts-title">
         <svg class="icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M12 2v20"></path><path d="M2 12h20"></path></svg>
         Buts marqués par équipe
+        <span id="total-goals-badge" class="live-badge" style="margin-left: auto; text-transform: none; letter-spacing: 0;">
+          <span id="total-goals-value">—</span> buts au total
+        </span>
       </h2>
       <div class="chart-container">
         <canvas id="goals-chart" aria-label="Graphique des buts marqués par équipe"></canvas>
@@ -1883,22 +1886,15 @@
     }
 
     function getMatchEffectiveStatus(m) {
-      // Priorité aux flags fiables de worldcup26.ir
+      // Priorité aux flags fiables de l'API
       if (m.finished === true || m.finished === 'TRUE' || m.status === 'FINISHED' || m.status === 'AWARDED') return 'finished';
-      const elapsed = m.time_elapsed;
-      // worldcup26.ir indique parfois explicitement "finished" même si le flag finished est FALSE
+      const elapsed = (m.time_elapsed || '').toString().toLowerCase();
       if (elapsed === 'finished') return 'finished';
-      const isWc26Live = elapsed && elapsed !== 'notstarted' && elapsed !== 'finished' && (elapsed === 'live' || !isNaN(Number(elapsed)));
-      if (isWc26Live || m.status === 'IN_PLAY' || m.status === 'PAUSED' || m.status === 'LIVE') return 'live';
-      // Si worldcup26.ir dit explicitement "notstarted", on fait confiance à l'API
-      // et on laisse le match dans "À venir" même si l'horloge est passée.
+      const isLive = elapsed && elapsed !== 'notstarted' && elapsed !== 'finished' && (elapsed === 'live' || !isNaN(Number(elapsed)));
+      if (isLive || m.status === 'IN_PLAY' || m.status === 'PAUSED' || m.status === 'LIVE') return 'live';
       if (elapsed === 'notstarted') return 'upcoming';
       const now = new Date();
       const matchTime = new Date(m.utcDate);
-      // Fallback temporel uniquement en l'absence de flag explicite.
-      // Si le match a déjà commencé/passé selon l'horloge, on le considère comme live
-      // pendant une fenêtre de 3h (durée max match + prolongations + tirs au but).
-      // Au-delà, et en l'absence de flag live/terminé explicite, on le considère terminé.
       const elapsedMs = now - matchTime;
       if (elapsedMs >= 0 && elapsedMs < 3 * 60 * 60 * 1000) return 'live';
       if (elapsedMs >= 3 * 60 * 60 * 1000) return 'finished';
@@ -2041,6 +2037,7 @@
         const home = m.homeTeam?.name;
         const away = m.awayTeam?.name;
         if (!home || !away) return;
+        // Utiliser les scores réels même si le statut API n'est pas encore 'FINISHED'
         const homeScore = m.score?.fullTime?.home;
         const awayScore = m.score?.fullTime?.away;
         const isFinished = getMatchEffectiveStatusCached(m) === 'finished';
@@ -2052,13 +2049,13 @@
         });
         const homeStats = stats[group][home];
         const awayStats = stats[group][away];
-        if (isFinished && homeScore !== null && homeScore !== undefined && awayScore !== null && awayScore !== undefined) {
+        if (isFinished && homeScore !== null && homeScore !== undefined && !isNaN(homeScore) && awayScore !== null && awayScore !== undefined && !isNaN(awayScore)) {
           homeStats.played += 1;
           awayStats.played += 1;
-          homeStats.gf += homeScore;
-          homeStats.ga += awayScore;
-          awayStats.gf += awayScore;
-          awayStats.ga += homeScore;
+          homeStats.gf += Number(homeScore);
+          homeStats.ga += Number(awayScore);
+          awayStats.gf += Number(awayScore);
+          awayStats.ga += Number(homeScore);
           if (homeScore > awayScore) {
             homeStats.won += 1; homeStats.points += 3;
             awayStats.lost += 1;
@@ -2656,15 +2653,20 @@
       const ctx = document.getElementById('goals-chart');
       if (!ctx || !window.Chart) return;
       const dataMap = {};
+      let totalGoals = 0;
       (matches || []).forEach(m => {
         if (!m.score || !m.score.fullTime) return;
         const home = m.homeTeam?.name;
         const away = m.awayTeam?.name;
         const hg = m.score.fullTime.home;
         const ag = m.score.fullTime.away;
-        if (home != null && hg != null) dataMap[home] = (dataMap[home] || 0) + hg;
-        if (away != null && ag != null) dataMap[away] = (dataMap[away] || 0) + ag;
+        if (home != null && hg != null) { dataMap[home] = (dataMap[home] || 0) + hg; totalGoals += hg; }
+        if (away != null && ag != null) { dataMap[away] = (dataMap[away] || 0) + ag; totalGoals += ag; }
       });
+
+      // Mettre à jour le badge total de buts
+      const badgeValue = document.getElementById('total-goals-value');
+      if (badgeValue) badgeValue.textContent = totalGoals;
       const entries = Object.entries(dataMap).sort((a, b) => b[1] - a[1]).slice(0, 16);
       const labels = entries.map(e => e[0]);
       const data = entries.map(e => e[1]);
@@ -2819,12 +2821,12 @@
       const applyMatches = (matches, isFallback, source) => {
         matches.forEach(m => lastRefreshTime.set(m.id, now));
         chartMatches = matches;
-        // Forcer le rendu des sections dépendantes si on passe du fallback statique à l'API (source de vérité pour les buteurs)
-        const sourceChangedFromFallback = lastMatchesSource === 'fallback' && source === 'worldcup26.ir';
+        // Forcer le rendu des sections dépendantes si on passe du fallback statique à l'API
+        const sourceChangedFromFallback = lastMatchesSource === 'fallback' && source !== 'fallback';
         lastMatchesSource = source || lastMatchesSource;
         if (!skipMatchRender) renderMatches(matches, wc);
         if (matchesResultsChanged(previousMatches, chartMatches) || sourceChangedFromFallback) {
-          // Rendre le classement/buteurs au prochain frame pour ne pas bloquer l'affichage des matchs
+          // Rendre le classement/buteurs/graphique au prochain frame pour ne pas bloquer l'affichage des matchs
           requestAnimationFrame(() => {
             initCharts();
             renderRankingsAndScorers();
@@ -2833,18 +2835,13 @@
         updateLastRefresh(isFallback, source);
       };
 
-      // Pour la Coupe du Monde 2026, privilégier l'API worldcup26.ir (plus fiable / live)
+      // Pour la Coupe du Monde 2026, privilégier l'API wcup2026.org
       if (wc.year === 2026) {
-        // 1) Afficher immédiatement le fallback statique
+        // 1) Afficher immédiatement le fallback statique pour ne pas laisser l'écran vide
         applyMatches(fallback, true, 'fallback');
 
-        // 2) Récupérer les données (cache frais ou appel réseau) sans bloquer l'UI
-        //    On charge aussi les buteurs en parallèle pour peupler wc26Scorers même si
-        //    le payload matchs n'en contient pas.
-        Promise.all([
-          fetchWorldcup26Matches({ preferFresh }),
-          fetchWorldcup26Scorers({ preferFresh })
-        ]).then(([wc26Matches]) => {
+        // 2) Récupérer les données live en arrière-plan sans bloquer l'UI
+        fetchWorldcup26Matches({ preferFresh }).then(wc26Matches => {
           if (wc26Matches && wc26Matches.length) {
             applyMatches(wc26Matches, false, 'wcup2026.org');
           }
@@ -2854,7 +2851,7 @@
         return;
       }
 
-      // Les buteurs sont inclus dans le payload wcup2026.org ; s'assurer que wc26Scorers est peuplé
+      // Récupérer les buteurs depuis wcup2026.org en parallèle (fallback si fetchWorldcup26Matches n'a pas tourné)
       await fetchWorldcup26Scorers();
       // La clé d'API football-data.org gratuite n'autorise que localhost en CORS.
       if (!API_KEY || !isLocalhostOrigin()) {
@@ -3068,7 +3065,9 @@
       updateFooterTimes();
 
       // Pendant la CdM 2026, le proxy PHP met en cache 30s : rafraîchir toutes les 30s
-      const intervalMs = currentWC.isLive ? (currentWC.year === 2026 ? 30000 : 15000) : currentWC.isSoon ? 300000 : 3600000;
+      // Pendant les matchs en cours, rafraîchir plus fréquemment pour suivre les buts live
+      const hasLive = chartMatches.some(m => getMatchEffectiveStatusCached(m) === 'live');
+      const intervalMs = currentWC.isLive ? (currentWC.year === 2026 ? (hasLive ? 15000 : 30000) : 15000) : currentWC.isSoon ? 300000 : 3600000;
       if (refreshInterval) clearInterval(refreshInterval);
       refreshInterval = setInterval(async () => {
         if (!isPageVisible) return;

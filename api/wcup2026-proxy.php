@@ -102,9 +102,13 @@ if (isset($data['matches']) && is_array($data['matches'])) {
         $status = strtolower($match['status'] ?? '');
         if ($status === 'finished' || $status === 'live' || $status === 'in_play') {
             $detail = getMatchDetail(intval($match['id']), $cacheDir);
-            if ($detail && (isset($detail['goals1']) || isset($detail['goals2']))) {
+            if ($detail && is_array($detail)) {
                 if (isset($detail['goals1'])) $match['goals1'] = $detail['goals1'];
                 if (isset($detail['goals2'])) $match['goals2'] = $detail['goals2'];
+                // Fusionner aussi les scores finaux si le détail est plus récent que l'aperçu
+                if (isset($detail['score']) && is_array($detail['score']) && count($detail['score']) === 2) {
+                    $match['score'] = $detail['score'];
+                }
             }
         }
     }
