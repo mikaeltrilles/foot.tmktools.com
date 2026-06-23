@@ -1,8 +1,8 @@
 <?php
 /**
- * Proxy/cache pour worldcup26.ir/get/games
+ * Proxy/cache pour wcup2026.org/api/data.php?action=all
  *
- * Récupère les données côté serveur, les met en cache 60 secondes,
+ * Récupère les données côté serveur, les met en cache 30 secondes,
  * et les sert au frontend avec les bons headers CORS.
  */
 
@@ -19,7 +19,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 }
 
 $cacheDir = __DIR__ . '/../cache';
-$cacheFile = $cacheDir . '/wc26-games.json';
+$cacheFile = $cacheDir . '/wcup2026-all.json';
 $cacheTtl = 30; // secondes (live)
 
 function sendJson($data, $code = 200) {
@@ -48,7 +48,7 @@ if (!$forceRefresh && file_exists($cacheFile)) {
 }
 
 // 2) Récupérer les données fraîches
-$url = 'https://worldcup26.ir/get/games' . ($forceRefresh ? '?_=' . time() : '');
+$url = 'https://wcup2026.org/api/data.php?action=all' . ($forceRefresh ? '&_=' . time() : '');
 $ch = curl_init($url);
 curl_setopt_array($ch, [
     CURLOPT_RETURNTRANSFER => true,
@@ -82,7 +82,7 @@ if ($response === false || $httpCode < 200 || $httpCode >= 300) {
 
 // 3) Valider JSON
 $data = json_decode($response, true);
-if (!is_array($data) || !isset($data['games']) || !is_array($data['games'])) {
+if (!is_array($data) || !isset($data['matches']) || !is_array($data['matches'])) {
     sendError('Invalid payload from upstream', 502);
 }
 

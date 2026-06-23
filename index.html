@@ -1083,6 +1083,26 @@
       '16': 'SoFi Stadium',
     };
 
+    // Mapping des noms de stade de wcup2026.org vers les noms internes
+    const WCUP2026_GROUND_TO_STADIUM = {
+      'Atlanta': 'Mercedes-Benz Stadium',
+      'Boston (Foxborough)': 'Gillette Stadium',
+      'Dallas (Arlington)': 'AT&T Stadium',
+      'Guadalajara (Zapopan)': 'Estadio Akron',
+      'Houston': 'NRG Stadium',
+      'Kansas City': 'Arrowhead Stadium',
+      'Los Angeles (Inglewood)': 'SoFi Stadium',
+      'Mexico City': 'Estadio Azteca',
+      'Miami (Miami Gardens)': 'Hard Rock Stadium',
+      'Monterrey (Guadalupe)': 'Estadio BBVA',
+      'New York/New Jersey (East Rutherford)': 'MetLife Stadium',
+      'Philadelphia': 'Lincoln Financial Field',
+      'San Francisco Bay Area (Santa Clara)': 'Levi\'s Stadium',
+      'Seattle': 'Lumen Field',
+      'Toronto': 'BMO Field',
+      'Vancouver': 'BC Place',
+    };
+
     let currentWC = null;
     let refreshInterval = null;
     let goalsChartInstance = null;
@@ -1094,6 +1114,14 @@
     let wc26FirstFetchDone = false; // indique si le premier appel frais a eu lieu
     let isPageVisible = !document.hidden;
     let lastMatchesSource = null; // 'fallback' | 'worldcup26.ir' | 'football-data'
+
+    // Réinitialiser périodiquement le compteur d'échecs pour ne pas rester bloqué sur du cache périmé
+    setInterval(() => {
+      if (wc26ApiFailures > 0) {
+        console.log('[worldcup26] reset failure counter after cooldown');
+        wc26ApiFailures = 0;
+      }
+    }, 300000);
 
     const STATIC_FALLBACK_TEAMS = {
       2026: [
@@ -1439,24 +1467,12 @@
       }
     }
 
-    async function fetchWorldcup26Scorers() {
-      // Si on a déjà des données buteurs fraîches, ne pas rafraîchir inutilement
-      if (wc26Scorers && wc26Scorers.size > 0) return;
-      // Utiliser le cache partagé avec fetchWorldcup26Matches
-      const cached = getWc26Cache();
-      if (cached && cached.games) {
-        parseWorldcup26Payload(cached);
-        return;
-      }
-      try {
-        const res = await fetchWithTimeout('https://worldcup26.ir/get/games', { cache: 'no-store' }, 10000);
-        if (!res.ok) return;
-        const data = await res.json();
-        if (!data.games || !Array.isArray(data.games)) return;
-        setWc26Cache(data);
-        parseWorldcup26Payload(data);
-      } catch (e) {
-        // Silencieux si l'API externe échoue
+    async function fetchWorldcup26Scorers({ preferFresh = false } = {}) {
+      // Les buteurs sont désormais inclus dans le payload wcup2026.org principal.
+      // Cette fonction reste pour compatibilité mais n'a plus besoin d'appel séparé.
+      const cached = getWc26Cache({ maxAgeMs: preferFresh ? 0 : 30000 });
+      if (cached && cached.matches) {
+        parseWcup2026Payload(cached);
       }
     }
 
@@ -1565,13 +1581,13 @@
       return fb.map(g => ({ minute: g.minute, scorer: g.scorer, side: g.team })).filter(g => g.scorer && g.scorer !== 'undefined');
     }
 
-    function getWc26Cache() {
+    function getWc26Cache({ maxAgeMs = 30000 } = {}) {
       try {
-        const raw = localStorage.getItem('wc26-cache');
+        // Utilise wcup2026.org comme source de vérité (anciennement worldcup26.ir)
+        const raw = localStorage.getItem('wcup2026-cache');
         if (!raw) return null;
         const parsed = JSON.parse(raw);
-        const ttl = 5 * 60 * 1000; // 5 minutes quand l'API est instable
-        if (Date.now() - parsed.ts > ttl) return null;
+        if (Date.now() - parsed.ts > maxAgeMs) return null;
         return parsed.data;
       } catch (e) {
         return null;
@@ -1580,7 +1596,7 @@
 
     function setWc26Cache(data) {
       try {
-        localStorage.setItem('wc26-cache', JSON.stringify({ ts: Date.now(), data }));
+        localStorage.setItem('wcup2026-cache', JSON.stringify({ ts: Date.now(), data }));
       } catch (e) { /* ignore */ }
     }
 
@@ -1601,25 +1617,25 @@
     }
 
     async function fetchWorldcup26Matches({ preferFresh = false } = {}) {
-      const cached = getWc26Cache();
+      const cached = getWc26Cache({ maxAgeMs: preferFresh ? 0 : 30000 });
 
       // Si l'API a échoué plusieurs fois, ne pas insister : utiliser le cache tant qu'il existe
-      if (wc26ApiFailures >= 3 && cached && cached.games && Array.isArray(cached.games)) {
+      if (wc26ApiFailures >= 3 && cached && cached.matches && Array.isArray(cached.matches)) {
         lastWc26FetchSource = 'cache';
-        return parseWorldcup26Payload(cached);
+        return parseWcup2026Payload(cached);
       }
 
-      // Mode normal : cache frais suffisant pour éviter les 429
-      if (!preferFresh && cached && cached.games && Array.isArray(cached.games)) {
+      // Mode normal : cache de 30s cohérent avec le proxy PHP
+      if (!preferFresh && cached && cached.matches && Array.isArray(cached.matches)) {
         lastWc26FetchSource = 'cache';
-        return parseWorldcup26Payload(cached);
+        return parseWcup2026Payload(cached);
       }
 
       // Déduplication : si un appel frais est déjà en cours, réutiliser sa promesse
       if (wc26FetchPromise) return wc26FetchPromise;
 
       wc26FetchPromise = (async () => {
-        const url = '/api/wc26-proxy.php';
+        const url = '/api/wcup2026-proxy.php' + (preferFresh ? '?force=1' : '');
         let lastError = null;
         for (let i = 0; i < 2; i++) {
           try {
@@ -1633,18 +1649,18 @@
               throw new Error(`HTTP ${res.status}`);
             }
             const data = await res.json();
-            if (!data.games || !Array.isArray(data.games)) throw new Error('invalid payload');
+            if (!data.matches || !Array.isArray(data.matches)) throw new Error('invalid payload');
             setWc26Cache(data);
             wc26ApiFailures = 0;
             wc26FirstFetchDone = true;
             lastWc26FetchSource = 'network';
-            return parseWorldcup26Payload(data);
+            return parseWcup2026Payload(data);
           } catch (e) {
             lastError = e;
             if (e.message === 'timeout after 15000ms') {
-              console.warn(`[worldcup26] fetch matches attempt ${i + 1} timed out`);
+              console.warn(`[wcup2026] fetch matches attempt ${i + 1} timed out`);
             } else {
-              console.warn(`[worldcup26] fetch matches attempt ${i + 1} failed:`, e.message || e);
+              console.warn(`[wcup2026] fetch matches attempt ${i + 1} failed:`, e.message || e);
             }
             if (String(e.message).startsWith('server error')) break; // pas de retry sur 5xx
           }
@@ -1652,13 +1668,13 @@
         wc26ApiFailures += 1;
         wc26FirstFetchDone = true;
         // En cas d'erreur, utiliser le cache même périmé
-        if (cached && cached.games) {
-          console.warn('[worldcup26] using stale cache after network failure');
+        if (cached && cached.matches) {
+          console.warn('[wcup2026] using stale cache after network failure');
           lastWc26FetchSource = 'stale-cache';
-          return parseWorldcup26Payload(cached);
+          return parseWcup2026Payload(cached);
         }
         lastWc26FetchSource = 'none';
-        console.error('[worldcup26] fetch matches failed:', lastError?.message || lastError);
+        console.error('[wcup2026] fetch matches failed:', lastError?.message || lastError);
         return null;
       })();
 
@@ -1725,6 +1741,79 @@
         return matches;
       } catch (e) {
         console.warn('[worldcup26] parse payload failed:', e);
+        return null;
+      }
+    }
+
+    function parseWcup2026Payload(data) {
+      try {
+        if (!data.matches || !Array.isArray(data.matches)) return null;
+        const scorersMap = new Map();
+        const matches = data.matches.map((m, idx) => {
+          const home = translateTeamName(m.team1 || 'TBD');
+          const away = translateTeamName(m.team2 || 'TBD');
+          const ground = (m.ground || '').toString().trim();
+          const venue = WCUP2026_GROUND_TO_STADIUM[ground] || ground || 'Stade à confirmer';
+          // Date : champ datetime est un timestamp Unix
+          const utcDate = m.datetime ? new Date(m.datetime * 1000).toISOString() : new Date().toISOString();
+          const status = (m.status || '').toString().toLowerCase();
+          const isFinished = status === 'finished';
+          const isLive = status === 'live';
+          let apiStatus = 'SCHEDULED';
+          if (isFinished) apiStatus = 'FINISHED';
+          else if (isLive) apiStatus = 'IN_PLAY';
+
+          const score = Array.isArray(m.score) ? m.score : [null, null];
+          const homeScore = score[0] !== null && score[0] !== undefined && !isNaN(Number(score[0])) ? Number(score[0]) : null;
+          const awayScore = score[1] !== null && score[1] !== undefined && !isNaN(Number(score[1])) ? Number(score[1]) : null;
+
+          // Buteurs
+          const matchGoals = [];
+          const addGoal = (goal, side) => {
+            if (!goal || !goal.name) return;
+            const minute = String(goal.minute ?? '').replace(/\s+/g, '');
+            matchGoals.push({
+              minute,
+              scorer: goal.name,
+              team: { name: side === 'home' ? home : away },
+              side
+            });
+          };
+          (m.goals1 || []).forEach(g => addGoal(g, 'home'));
+          (m.goals2 || []).forEach(g => addGoal(g, 'away'));
+          scorersMap.set(`${home}|${away}`, matchGoals);
+
+          const round = (m.round || '').toString().toLowerCase();
+          const groupLetter = (m.group || '').toString().replace(/^Group\s*/i, '').trim();
+          const groupLabel = groupLetter ? `Groupe ${groupLetter.toUpperCase()}` : '';
+          let stage = 'GROUP_STAGE';
+          if (round.includes('round of 32')) stage = 'ROUND_OF_32';
+          else if (round.includes('round of 16')) stage = 'ROUND_OF_16';
+          else if (round.includes('quarter')) stage = 'QUARTER_FINALS';
+          else if (round.includes('semi')) stage = 'SEMI_FINALS';
+          else if (round.includes('third')) stage = 'THIRD_PLACE';
+          else if (round.includes('final')) stage = 'FINAL';
+
+          return {
+            id: m.id !== undefined ? m.id : idx,
+            homeTeam: { name: home, shortName: home.slice(0, 3).toUpperCase(), tla: home.slice(0, 3).toUpperCase() },
+            awayTeam: { name: away, shortName: away.slice(0, 3).toUpperCase(), tla: away.slice(0, 3).toUpperCase() },
+            score: { fullTime: { home: homeScore, away: awayScore }, halfTime: { home: null, away: null } },
+            goals: matchGoals,
+            status: apiStatus,
+            finished: isFinished,
+            time_elapsed: isLive ? String(m.live_minute || 'live') : (isFinished ? 'finished' : 'notstarted'),
+            minute: m.live_minute || '',
+            utcDate,
+            stage,
+            group: groupLabel,
+            venue,
+          };
+        });
+        wc26Scorers = scorersMap;
+        return matches;
+      } catch (e) {
+        console.warn('[wcup2026] parse payload failed:', e);
         return null;
       }
     }
@@ -2750,10 +2839,10 @@
         //    le payload matchs n'en contient pas.
         Promise.all([
           fetchWorldcup26Matches({ preferFresh }),
-          fetchWorldcup26Scorers()
+          fetchWorldcup26Scorers({ preferFresh })
         ]).then(([wc26Matches]) => {
           if (wc26Matches && wc26Matches.length) {
-            applyMatches(wc26Matches, false, 'worldcup26.ir');
+            applyMatches(wc26Matches, false, 'wcup2026.org');
           }
         }).catch(() => {
           // Fallback déjà affiché, ignorer silencieusement
@@ -2761,7 +2850,7 @@
         return;
       }
 
-      // Récupérer les buteurs depuis worldcup26.ir en parallèle (fallback si fetchWorldcup26Matches n'a pas tourné)
+      // Les buteurs sont inclus dans le payload wcup2026.org ; s'assurer que wc26Scorers est peuplé
       await fetchWorldcup26Scorers();
       // La clé d'API football-data.org gratuite n'autorise que localhost en CORS.
       if (!API_KEY || !isLocalhostOrigin()) {
@@ -2974,13 +3063,14 @@
       initScrollReveal();
       updateFooterTimes();
 
-      // Pendant la CdM 2026, worldcup26.ir rate-limite : rafraîchir toutes les 2 min max
-      const intervalMs = currentWC.isLive ? (currentWC.year === 2026 ? 120000 : 15000) : currentWC.isSoon ? 300000 : 3600000;
+      // Pendant la CdM 2026, le proxy PHP met en cache 30s : rafraîchir toutes les 30s
+      const intervalMs = currentWC.isLive ? (currentWC.year === 2026 ? 30000 : 15000) : currentWC.isSoon ? 300000 : 3600000;
       if (refreshInterval) clearInterval(refreshInterval);
       refreshInterval = setInterval(async () => {
         if (!isPageVisible) return;
         currentWC = await autoDiscoverWorldCup();
-        await fetchAndRenderMatches(currentWC);
+        // Pendant la CdM 2026, forcer les appels frais pour suivre les buts en direct
+        await fetchAndRenderMatches(currentWC, { preferFresh: currentWC.year === 2026 });
         updateCountdowns();
         updateFooterTimes();
       }, intervalMs);
