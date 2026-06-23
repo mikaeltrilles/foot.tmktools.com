@@ -86,11 +86,36 @@ if (!is_array($data) || !isset($data['matches']) || !is_array($data['matches']))
     sendError('Invalid payload from upstream', 502);
 }
 
-// 4) Écrire le cache
+// 4) Fusionner les détails de match déjà en cache (buteurs, stats)
+function getMatchDetail($id, $cacheDir) {
+    $f = $cacheDir . '/wcup2026-match-' . $id . '.json';
+    if (!file_exists($f)) return null;
+    $raw = file_get_contents($f);
+    if ($raw === false) return null;
+    $d = json_decode($raw, true);
+    if (!is_array($d) || !isset($d['match']) || !is_array($d['match'])) return null;
+    return $d['match'];
+}
+
+if (isset($data['matches']) && is_array($data['matches'])) {
+    foreach ($data['matches'] as &$match) {
+        $status = strtolower($match['status'] ?? '');
+        if ($status === 'finished' || $status === 'live' || $status === 'in_play') {
+            $detail = getMatchDetail(intval($match['id']), $cacheDir);
+            if ($detail && (isset($detail['goals1']) || isset($detail['goals2']))) {
+                if (isset($detail['goals1'])) $match['goals1'] = $detail['goals1'];
+                if (isset($detail['goals2'])) $match['goals2'] = $detail['goals2'];
+            }
+        }
+    }
+    unset($match);
+}
+
+// 5) Écrire le cache
 if (!is_dir($cacheDir)) {
     @mkdir($cacheDir, 0755, true);
 }
-@file_put_contents($cacheFile, $response);
+@file_put_contents($cacheFile, json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
 
 header('X-Cache: miss');
-echo $response;
+echo json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
