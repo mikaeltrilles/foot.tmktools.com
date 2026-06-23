@@ -2683,15 +2683,21 @@
       if (badgeValue) badgeValue.textContent = totalGoals;
 
       const cols = {};
-      Object.entries(dataMap).filter(e => e[1] > 0).sort((a, b) => a[0].localeCompare(b[0], 'fr')).forEach(([team, goals]) => {
-        cols[goals] = cols[goals] || [];
-        cols[goals].push({ team, goals });
+      const zeroGoalsTeams = [];
+      Object.entries(dataMap).sort((a, b) => a[0].localeCompare(b[0], 'fr')).forEach(([team, goals]) => {
+        if (goals > 0) {
+          cols[goals] = cols[goals] || [];
+          cols[goals].push({ team, goals });
+        } else {
+          zeroGoalsTeams.push({ team, goals: 0 });
+        }
       });
 
       const goalCounts = Object.keys(cols).map(Number).sort((a, b) => b - a);
+      const hasZeroColumn = zeroGoalsTeams.length > 0;
       table.innerHTML = '';
-      if (goalCounts.length === 0) {
-        table.innerHTML = '<div class="goals-table-empty">Aucune équipe n\'a encore marqué de but.</div>';
+      if (goalCounts.length === 0 && !hasZeroColumn) {
+        table.innerHTML = '<div class="goals-table-empty">Aucune équipe n\'a encore joué.</div>';
         return;
       }
 
@@ -2703,9 +2709,17 @@
         header.textContent = `${count} But${count > 1 ? 's' : ''}`;
         headerRow.appendChild(header);
       });
+      if (hasZeroColumn) {
+        const header = document.createElement('div');
+        header.className = 'goals-table-header';
+        header.textContent = '0 But';
+        headerRow.appendChild(header);
+      }
       table.appendChild(headerRow);
 
-      const maxRows = Math.max(...Object.values(cols).map(a => a.length));
+      const allLengths = Object.values(cols).map(a => a.length);
+      if (hasZeroColumn) allLengths.push(zeroGoalsTeams.length);
+      const maxRows = Math.max(...allLengths);
       for (let row = 0; row < maxRows; row++) {
         const rowEl = document.createElement('div');
         rowEl.className = 'goals-table-row';
@@ -2730,6 +2744,27 @@
           }
           rowEl.appendChild(cell);
         });
+        if (hasZeroColumn) {
+          const cell = document.createElement('div');
+          cell.className = 'goals-table-cell';
+          const entry = zeroGoalsTeams[row];
+          if (entry) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'goals-table-team';
+            const flag = document.createElement('img');
+            flag.className = 'flag';
+            flag.src = `https://flagcdn.com/${flagCodeForTeam(entry.team)}.svg`;
+            flag.alt = '';
+            flag.loading = 'lazy';
+            flag.onerror = function () { this.style.display = 'none'; };
+            const name = document.createElement('span');
+            name.textContent = entry.team;
+            wrapper.appendChild(flag);
+            wrapper.appendChild(name);
+            cell.appendChild(wrapper);
+          }
+          rowEl.appendChild(cell);
+        }
         table.appendChild(rowEl);
       }
     }
