@@ -1584,7 +1584,8 @@
     function getWc26Cache({ maxAgeMs = 30000 } = {}) {
       try {
         // Utilise wcup2026.org comme source de vérité (anciennement worldcup26.ir)
-        const raw = localStorage.getItem('wcup2026-cache');
+        // La clé est versionnée pour forcer un rechargement frais quand le format change.
+        const raw = localStorage.getItem('wcup2026-cache-v2');
         if (!raw) return null;
         const parsed = JSON.parse(raw);
         if (Date.now() - parsed.ts > maxAgeMs) return null;
@@ -1596,7 +1597,10 @@
 
     function setWc26Cache(data) {
       try {
-        localStorage.setItem('wcup2026-cache', JSON.stringify({ ts: Date.now(), data }));
+        localStorage.setItem('wcup2026-cache-v2', JSON.stringify({ ts: Date.now(), data }));
+        // Nettoyer les anciennes clés de cache obsolètes
+        localStorage.removeItem('wcup2026-cache');
+        localStorage.removeItem('wc26-cache');
       } catch (e) { /* ignore */ }
     }
 
