@@ -1,0 +1,333 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   BRACKET COUPE DU MONDE — Phase finale (projection)
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.knockout-bracket-wrapper {
+  position: relative;
+  overflow-x: auto;
+  overflow-y: hidden;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  -webkit-overflow-scrolling: touch;
+}
+
+@media (min-width: 1024px) {
+  .knockout-bracket-wrapper {
+    padding: var(--space-6);
+  }
+}
+
+.knockout-bracket {
+  display: flex;
+  align-items: center;
+  gap: var(--space-6);
+  min-width: 1350px;
+  position: relative;
+  z-index: 1;
+}
+
+@media (min-width: 1280px) {
+  .knockout-bracket {
+    gap: var(--space-8);
+    min-width: 1500px;
+  }
+}
+
+@media (min-width: 1600px) {
+  .knockout-bracket {
+    gap: var(--space-10);
+    min-width: 1650px;
+  }
+}
+
+.knockout-col {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  flex: 0 0 auto;
+  position: relative;
+  z-index: 1;
+}
+
+.knockout-col.final-col {
+  align-items: center;
+  gap: var(--space-8);
+}
+
+.knockout-round-title {
+  font-family: var(--font-display);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  color: var(--color-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  text-align: center;
+  margin-bottom: var(--space-4);
+  white-space: nowrap;
+}
+
+.knockout-matches {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.knockout-match {
+  width: 150px;
+  height: 80px;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+  flex-shrink: 0;
+}
+
+@media (min-width: 1280px) {
+  .knockout-match {
+    width: 180px;
+    height: 86px;
+  }
+}
+
+@media (min-width: 1600px) {
+  .knockout-match {
+    width: 200px;
+    height: 90px;
+  }
+}
+
+.knockout-match:hover {
+  transform: translateY(-2px);
+  border-color: var(--color-primary);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+}
+
+[data-theme="light"] .knockout-match:hover {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+}
+
+.knockout-team {
+  flex: 1 1 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: 0 var(--space-2);
+  font-size: 11px;
+  font-weight: 600;
+  min-height: 0;
+}
+
+@media (min-width: 1280px) {
+  .knockout-team {
+    padding: 0 var(--space-3);
+    font-size: var(--text-xs);
+  }
+}
+
+.knockout-team + .knockout-team {
+  border-top: 1px solid var(--color-border);
+}
+
+.knockout-team.known {
+  color: var(--color-text);
+}
+
+.knockout-team.placeholder {
+  color: var(--color-text-faint);
+  font-style: italic;
+}
+
+.knockout-team.known {
+  color: var(--color-text);
+  background: rgba(61, 220, 132, 0.08);
+}
+
+.knockout-team-name {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.knockout-team-name .flag-tiny,
+.knockout-team-name .flag-placeholder {
+  flex-shrink: 0;
+}
+
+.knockout-team-name span {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.knockout-score {
+  font-family: var(--font-display);
+  font-weight: 700;
+  flex-shrink: 0;
+  color: var(--color-text-muted);
+}
+
+.knockout-match-note {
+  flex: 0 0 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  font-size: 8px;
+  color: var(--color-text-faint);
+  border-top: 1px dashed var(--color-border);
+  background: var(--color-surface);
+}
+
+@media (min-width: 1280px) {
+  .knockout-match-note {
+    font-size: 9px;
+  }
+}
+
+/* Trophy / final highlight */
+.knockout-match.final-match {
+  border-color: var(--color-gold);
+  background: rgba(245, 208, 80, 0.08);
+}
+
+.knockout-match.final-match .knockout-round-title {
+  color: var(--color-gold);
+}
+
+.knockout-match.third-place-match {
+  border-color: var(--color-primary);
+  opacity: 0.95;
+}
+
+/* Spacing per round — creates the classic tournament tree alignment.
+   Round 0 = 16èmes (16 matchs), round 1 = 8èmes (8), round 2 = quarts (4), round 3 = demis (2), round 4 = finale/3ème. */
+.knockout-col[data-round="0"] .knockout-match {
+  margin-bottom: 6px;
+}
+
+.knockout-col[data-round="0"] .knockout-match:last-child {
+  margin-bottom: 0;
+}
+
+.knockout-col[data-round="1"] .knockout-match {
+  margin-bottom: calc(6px + 80px);
+}
+
+.knockout-col[data-round="1"] .knockout-match:last-child {
+  margin-bottom: 0;
+}
+
+.knockout-col[data-round="2"] .knockout-match {
+  margin-bottom: calc((6px + 80px) * 2 + 80px);
+}
+
+.knockout-col[data-round="2"] .knockout-match:last-child {
+  margin-bottom: 0;
+}
+
+.knockout-col[data-round="3"] .knockout-match {
+  margin-bottom: calc(((6px + 80px) * 2 + 80px) * 2 + 80px);
+}
+
+.knockout-col[data-round="3"] .knockout-match:last-child {
+  margin-bottom: 0;
+}
+
+.knockout-col[data-round="4"] .knockout-match {
+  margin-bottom: 0;
+}
+
+@media (min-width: 1280px) {
+  .knockout-col[data-round="0"] .knockout-match {
+    margin-bottom: 8px;
+  }
+
+  .knockout-col[data-round="1"] .knockout-match {
+    margin-bottom: calc(8px + 86px);
+  }
+
+  .knockout-col[data-round="2"] .knockout-match {
+    margin-bottom: calc((8px + 86px) * 2 + 86px);
+  }
+
+  .knockout-col[data-round="3"] .knockout-match {
+    margin-bottom: calc(((8px + 86px) * 2 + 86px) * 2 + 86px);
+  }
+}
+
+@media (min-width: 1600px) {
+  .knockout-col[data-round="0"] .knockout-match {
+    margin-bottom: 10px;
+  }
+
+  .knockout-col[data-round="1"] .knockout-match {
+    margin-bottom: calc(10px + 90px);
+  }
+
+  .knockout-col[data-round="2"] .knockout-match {
+    margin-bottom: calc((10px + 90px) * 2 + 90px);
+  }
+
+  .knockout-col[data-round="3"] .knockout-match {
+    margin-bottom: calc(((10px + 90px) * 2 + 90px) * 2 + 90px);
+  }
+}
+
+/* SVG connectors layer */
+.knockout-connectors {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+  overflow: visible;
+}
+
+.knockout-connectors path {
+  fill: none;
+  stroke: var(--color-border);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: stroke 0.3s;
+}
+
+.knockout-connectors path.winner-path {
+  stroke: var(--color-primary);
+  stroke-width: 2.5;
+}
+
+/* Empty state */
+.knockout-empty {
+  background: var(--color-surface-2);
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  text-align: center;
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+}
+
+/* Scroll hint on mobile */
+.knockout-scroll-hint {
+  display: block;
+  text-align: center;
+  font-size: 10px;
+  color: var(--color-text-faint);
+  margin-top: var(--space-2);
+}
+
+@media (min-width: 1024px) {
+  .knockout-scroll-hint {
+    display: none;
+  }
+}
