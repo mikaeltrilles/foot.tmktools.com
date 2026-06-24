@@ -4,3 +4,4 @@ node_modules/
 *.log
 wc_*.json
 wc_*.txt
+.claude/plans/

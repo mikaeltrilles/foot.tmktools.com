@@ -1,0 +1,29 @@
+# Compression
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/css text/javascript application/javascript application/json image/svg+xml
+</IfModule>
+
+<IfModule mod_brotli.c>
+  AddOutputFilterByType BROTLI_COMPRESS text/html text/css text/javascript application/javascript application/json image/svg+xml
+</IfModule>
+
+# Headers de cache
+<IfModule mod_headers.c>
+  # HTML principal : cache navigateur 5 minutes (déjà géré par balise meta, mais renforcé ici)
+  <FilesMatch "index\.html$">
+    Header set Cache-Control "public, max-age=300, must-revalidate"
+  </FilesMatch>
+
+  # Assets statiques : 1 heure (CSS/JS/images)
+  <FilesMatch "\.(css|js|png|jpg|jpeg|gif|svg|webp|ico|woff|woff2|ttf|eot)$">
+    Header set Cache-Control "public, max-age=3600, immutable"
+  </FilesMatch>
+
+  # API proxy : 30 secondes (cohérent avec le cache PHP)
+  <FilesMatch "api/.*\.php$">
+    Header set Cache-Control "public, max-age=30, must-revalidate"
+  </FilesMatch>
+</IfModule>
+
+# Désactiver l'affichage des répertoires
+Options -Indexes
