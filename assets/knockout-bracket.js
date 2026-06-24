@@ -88,9 +88,17 @@
   }
 
   function getMatchResult(match) {
-    if (!match || !match.score) return null;
-    const home = Number(match.score.fullTime?.home ?? match.score[0]);
-    const away = Number(match.score.fullTime?.away ?? match.score[1]);
+    if (!match) return null;
+    let home, away;
+    if (match.score && typeof match.score === 'object') {
+      if (match.score.fullTime) {
+        home = Number(match.score.fullTime.home);
+        away = Number(match.score.fullTime.away);
+      } else if (Array.isArray(match.score)) {
+        home = Number(match.score[0]);
+        away = Number(match.score[1]);
+      }
+    }
     if (isNaN(home) || isNaN(away)) return null;
     if (home > away) return 'home';
     if (away > home) return 'away';
@@ -98,7 +106,9 @@
   }
 
   function isFinished(match) {
-    return match && (match.status === 'FINISHED' || match.finished === true);
+    if (!match) return false;
+    const status = String(match.status || '').toLowerCase();
+    return status === 'finished' || status === 'ft' || match.finished === true || match.finished === 'TRUE';
   }
 
   function getTeamSideName(match, side) {
@@ -197,7 +207,7 @@
     );
     if (!hasKnockout) return null;
 
-    return TOURNAMENT_STRUCTURE.map(round => ({
+    const rounds = TOURNAMENT_STRUCTURE.map(round => ({
       name: round.name,
       key: round.key,
       matches: round.matches.map(m => ({
@@ -207,6 +217,37 @@
         apiMatch: matchesById[m.id] || null
       }))
     }));
+
+    // Propager les vainqueurs/perdants déjà connus aux matchs suivants pour afficher
+    // le chemin qualificatif dès qu'un résultat est officiel.
+    rounds.forEach((round, roundIndex) => {
+      round.matches.forEach(m => {
+        if (!m.apiMatch || !isFinished(m.apiMatch)) return;
+        const winner = getMatchWinner(m.apiMatch);
+        const loser = getMatchLoser(m.apiMatch);
+        if (!winner) return;
+
+        // Chercher les matchs suivants qui attendent ce résultat
+        for (let i = roundIndex + 1; i < rounds.length; i++) {
+          rounds[i].matches.forEach(nextMatch => {
+            const homeRef = typeof m.apiMatch === 'object' ? m.apiMatch.id : null;
+            const checkHome = nextMatch.apiMatch ? (nextMatch.apiMatch.team1 === `W${m.id}` || nextMatch.apiMatch.team1 === `L${m.id}`) : false;
+            const checkAway = nextMatch.apiMatch ? (nextMatch.apiMatch.team2 === `W${m.id}` || nextMatch.apiMatch.team2 === `L${m.id}`) : false;
+
+            if (checkHome) {
+              const isLoser = nextMatch.apiMatch.team1.startsWith('L');
+              nextMatch.home = { type: 'team', label: safeTranslateTeamName(isLoser ? loser : winner) };
+            }
+            if (checkAway) {
+              const isLoser = nextMatch.apiMatch.team2.startsWith('L');
+              nextMatch.away = { type: 'team', label: safeTranslateTeamName(isLoser ? loser : winner) };
+            }
+          });
+        }
+      });
+    });
+
+    return rounds;
   }
 
   function teamHTML(team) {

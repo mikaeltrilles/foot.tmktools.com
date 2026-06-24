@@ -75,8 +75,8 @@
 }
 
 .knockout-match {
-  width: 170px;
-  height: 90px;
+  width: 150px;
+  height: 80px;
   display: flex;
   flex-direction: column;
   background: var(--color-surface-2);
@@ -89,7 +89,15 @@
 
 @media (min-width: 1280px) {
   .knockout-match {
+    width: 180px;
+    height: 86px;
+  }
+}
+
+@media (min-width: 1600px) {
+  .knockout-match {
     width: 200px;
+    height: 90px;
   }
 }
 
@@ -109,10 +117,17 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--space-2);
-  padding: 0 var(--space-3);
-  font-size: var(--text-xs);
+  padding: 0 var(--space-2);
+  font-size: 11px;
   font-weight: 600;
   min-height: 0;
+}
+
+@media (min-width: 1280px) {
+  .knockout-team {
+    padding: 0 var(--space-3);
+    font-size: var(--text-xs);
+  }
 }
 
 .knockout-team + .knockout-team {
@@ -124,8 +139,13 @@
 }
 
 .knockout-team.placeholder {
-  color: var(--color-text-muted);
+  color: var(--color-text-faint);
   font-style: italic;
+}
+
+.knockout-team.known {
+  color: var(--color-text);
+  background: rgba(61, 220, 132, 0.08);
 }
 
 .knockout-team-name {
@@ -154,15 +174,21 @@
 }
 
 .knockout-match-note {
-  flex: 0 0 20px;
+  flex: 0 0 18px;
   display: flex;
   align-items: center;
   justify-content: center;
   text-align: center;
-  font-size: 9px;
+  font-size: 8px;
   color: var(--color-text-faint);
   border-top: 1px dashed var(--color-border);
   background: var(--color-surface);
+}
+
+@media (min-width: 1280px) {
+  .knockout-match-note {
+    font-size: 9px;
+  }
 }
 
 /* Trophy / final highlight */
@@ -183,7 +209,7 @@
 /* Spacing per round — creates the classic tournament tree alignment.
    Round 0 = 16èmes (16 matchs), round 1 = 8èmes (8), round 2 = quarts (4), round 3 = demis (2), round 4 = finale/3ème. */
 .knockout-col[data-round="0"] .knockout-match {
-  margin-bottom: var(--space-2);
+  margin-bottom: 6px;
 }
 
 .knockout-col[data-round="0"] .knockout-match:last-child {
@@ -191,7 +217,7 @@
 }
 
 .knockout-col[data-round="1"] .knockout-match {
-  margin-bottom: calc(var(--space-3) + 38px);
+  margin-bottom: calc(6px + 80px);
 }
 
 .knockout-col[data-round="1"] .knockout-match:last-child {
@@ -199,7 +225,7 @@
 }
 
 .knockout-col[data-round="2"] .knockout-match {
-  margin-bottom: calc((var(--space-3) + 38px) * 2 + 38px);
+  margin-bottom: calc((6px + 80px) * 2 + 80px);
 }
 
 .knockout-col[data-round="2"] .knockout-match:last-child {
@@ -207,7 +233,7 @@
 }
 
 .knockout-col[data-round="3"] .knockout-match {
-  margin-bottom: calc(((var(--space-3) + 38px) * 2 + 38px) * 2 + 38px);
+  margin-bottom: calc(((6px + 80px) * 2 + 80px) * 2 + 80px);
 }
 
 .knockout-col[data-round="3"] .knockout-match:last-child {
@@ -216,6 +242,42 @@
 
 .knockout-col[data-round="4"] .knockout-match {
   margin-bottom: 0;
+}
+
+@media (min-width: 1280px) {
+  .knockout-col[data-round="0"] .knockout-match {
+    margin-bottom: 8px;
+  }
+
+  .knockout-col[data-round="1"] .knockout-match {
+    margin-bottom: calc(8px + 86px);
+  }
+
+  .knockout-col[data-round="2"] .knockout-match {
+    margin-bottom: calc((8px + 86px) * 2 + 86px);
+  }
+
+  .knockout-col[data-round="3"] .knockout-match {
+    margin-bottom: calc(((8px + 86px) * 2 + 86px) * 2 + 86px);
+  }
+}
+
+@media (min-width: 1600px) {
+  .knockout-col[data-round="0"] .knockout-match {
+    margin-bottom: 10px;
+  }
+
+  .knockout-col[data-round="1"] .knockout-match {
+    margin-bottom: calc(10px + 90px);
+  }
+
+  .knockout-col[data-round="2"] .knockout-match {
+    margin-bottom: calc((10px + 90px) * 2 + 90px);
+  }
+
+  .knockout-col[data-round="3"] .knockout-match {
+    margin-bottom: calc(((10px + 90px) * 2 + 90px) * 2 + 90px);
+  }
 }
 
 /* SVG connectors layer */
