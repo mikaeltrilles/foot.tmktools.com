@@ -22,16 +22,23 @@
 .knockout-bracket {
   display: flex;
   align-items: center;
-  gap: var(--space-8);
-  min-width: 1100px;
+  gap: var(--space-6);
+  min-width: 1350px;
   position: relative;
   z-index: 1;
 }
 
 @media (min-width: 1280px) {
   .knockout-bracket {
-    gap: var(--space-12);
-    min-width: 1250px;
+    gap: var(--space-8);
+    min-width: 1500px;
+  }
+}
+
+@media (min-width: 1600px) {
+  .knockout-bracket {
+    gap: var(--space-10);
+    min-width: 1650px;
   }
 }
 
@@ -173,9 +180,10 @@
   opacity: 0.95;
 }
 
-/* Spacing per round — creates the classic tournament tree alignment */
+/* Spacing per round — creates the classic tournament tree alignment.
+   Round 0 = 16èmes (16 matchs), round 1 = 8èmes (8), round 2 = quarts (4), round 3 = demis (2), round 4 = finale/3ème. */
 .knockout-col[data-round="0"] .knockout-match {
-  margin-bottom: var(--space-3);
+  margin-bottom: var(--space-2);
 }
 
 .knockout-col[data-round="0"] .knockout-match:last-child {
@@ -183,7 +191,7 @@
 }
 
 .knockout-col[data-round="1"] .knockout-match {
-  margin-bottom: calc(var(--space-3) * 2 + 38px);
+  margin-bottom: calc(var(--space-3) + 38px);
 }
 
 .knockout-col[data-round="1"] .knockout-match:last-child {
@@ -191,7 +199,7 @@
 }
 
 .knockout-col[data-round="2"] .knockout-match {
-  margin-bottom: calc((var(--space-3) * 2 + 38px) * 2 + 38px);
+  margin-bottom: calc((var(--space-3) + 38px) * 2 + 38px);
 }
 
 .knockout-col[data-round="2"] .knockout-match:last-child {
@@ -199,10 +207,14 @@
 }
 
 .knockout-col[data-round="3"] .knockout-match {
-  margin-bottom: calc(((var(--space-3) * 2 + 38px) * 2 + 38px) * 2 + 38px);
+  margin-bottom: calc(((var(--space-3) + 38px) * 2 + 38px) * 2 + 38px);
 }
 
 .knockout-col[data-round="3"] .knockout-match:last-child {
+  margin-bottom: 0;
+}
+
+.knockout-col[data-round="4"] .knockout-match {
   margin-bottom: 0;
 }
 

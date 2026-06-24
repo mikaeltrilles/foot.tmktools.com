@@ -27,7 +27,7 @@
   <!-- Chart.js est chargé à la demande quand la section Palmarès devient visible -->
 
   <link rel="stylesheet" href="assets/style.v2.min.css?v=2">
-  <link rel="stylesheet" href="assets/knockout-bracket.css?v=1">
+  <link rel="stylesheet" href="assets/knockout-bracket.css?v=2">
 </head>
 <body>
 
@@ -127,10 +127,10 @@
     <section class="section" id="phase-finale" aria-labelledby="phase-finale-title">
       <h2 class="section-title" id="phase-finale-title">
         <svg class="icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path><path d="M4 22h16"></path><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"></path><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"></path><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path></svg>
-        Phase finale (projection)
+        Phase finale (en direct)
       </h2>
       <p style="font-size: var(--text-xs); color: var(--color-text-muted); margin-bottom: var(--space-4);">
-        Arbre de tournoi projeté à partir des classements actuels. Les qualifiés et les vainqueurs sont simulés selon les performances en phase de groupes.
+        Arbre de tournoi de la phase finale. Les équipes qualifiées avancent automatiquement au tour suivant au fur et à mesure des résultats officiels. Les emplacements non encore déterminés restent indiqués.
       </p>
       <div id="knockout-grid" role="region" aria-label="Tableau de phase finale">
         <!-- Généré par JS -->
@@ -274,7 +274,7 @@
   </footer>
 
   <script src="assets/app.v2.min.js?v=2" defer></script>
-  <script src="assets/knockout-bracket.js?v=1" defer></script>
+  <script src="assets/knockout-bracket.js?v=2" defer></script>
 
 </body>
 </html>
