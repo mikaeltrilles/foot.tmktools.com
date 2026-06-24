@@ -61,13 +61,13 @@ $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 curl_close($ch);
 
 if ($listRaw === false || $httpCode < 200 || $httpCode >= 300) {
-    fwrite(STDERR, "Failed to fetch match list: HTTP $httpCode\n");
+    error_log("Failed to fetch match list: HTTP $httpCode");
     exit(1);
 }
 
 $list = json_decode($listRaw, true);
 if (!is_array($list) || !isset($list['matches']) || !is_array($list['matches'])) {
-    fwrite(STDERR, "Invalid match list payload\n");
+    error_log("Invalid match list payload");
     exit(1);
 }
 
