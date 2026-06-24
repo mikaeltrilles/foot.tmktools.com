@@ -141,7 +141,40 @@
     }
   }
 
-  function resolveSlot(slot, matchesById, matchId) {
+  function safeComputeGroupStandings(matches) {
+    if (typeof computeGroupStandings === 'function') return computeGroupStandings(matches);
+    return null;
+  }
+
+  function safeGetKnockoutSlot(standings, groupLetter, place) {
+    const group = `Groupe ${groupLetter}`;
+    const teams = standings?.[group];
+    if (teams && teams[place - 1]) {
+      return { type: 'team', label: safeTranslateTeamName(teams[place - 1].team) };
+    }
+    return null;
+  }
+
+  function getAllBestThirdTeams(standings) {
+    if (!standings) return [];
+    const thirds = [];
+    Object.entries(standings).forEach(([group, teams]) => {
+      if (teams && teams[2]) {
+        thirds.push({ ...teams[2], group: group.replace(/^Groupe\s+/i, '') });
+      }
+    });
+    return thirds
+      .sort((a, b) => {
+        if (b.points !== a.points) return b.points - a.points;
+        const ad = a.gf - a.ga, bd = b.gf - b.ga;
+        if (bd !== ad) return bd - ad;
+        if (b.gf !== a.gf) return b.gf - a.gf;
+        return a.team.localeCompare(b.team, 'fr');
+      })
+      .slice(0, 8);
+  }
+
+  function resolveSlot(slot, matchesById, matchId, standings, usedThirds) {
     if (!slot) return { type: 'placeholder', label: '—' };
 
     // Référence Wxx / Lxx (texte ou objet)
@@ -180,9 +213,25 @@
     const label = typeof slot === 'string' ? slot : String(slot);
     const translated = safeTranslateTeamName(label);
 
-    // Placeholders de groupes (1A, 2B, 3A/B/C…)
-    if (/^\d[A-L]$|^\d[A-L](\/\d?[A-L])+$|^\d[A-L]\/\d?[A-L]/i.test(label)) {
-      return { type: 'placeholder', label: label.toUpperCase() };
+    // Placeholder de classement de groupe : 1A, 2B, 3A/B/C/D/F, etc.
+    const groupPlaceMatch = label.match(/^(\d)([A-L])$/i);
+    if (groupPlaceMatch && standings) {
+      const resolved = safeGetKnockoutSlot(standings, groupPlaceMatch[2].toUpperCase(), parseInt(groupPlaceMatch[1], 10));
+      if (resolved) return resolved;
+      return { type: 'placeholder', label: `${groupPlaceMatch[1]}${groupPlaceMatch[2].toUpperCase()}` };
+    }
+
+    // Placeholder de meilleure 3ème : 3A/B/C/D/F
+    const thirdPlaceMatch = label.match(/^3([A-L](?:\/[A-L])*)$/i);
+    if (thirdPlaceMatch && standings && usedThirds) {
+      const allowedGroups = thirdPlaceMatch[1].split('/').map(g => g.toUpperCase());
+      const bestThirds = getAllBestThirdTeams(standings);
+      const picked = bestThirds.find(t => !usedThirds.has(t.team) && allowedGroups.includes(t.group));
+      if (picked) {
+        usedThirds.add(picked.team);
+        return { type: 'team', label: safeTranslateTeamName(picked.team) };
+      }
+      return { type: 'placeholder', label: `3${thirdPlaceMatch[1]}` };
     }
 
     // Équipe connue : on a un drapeau valide
@@ -207,13 +256,18 @@
     );
     if (!hasKnockout) return null;
 
+    // Positionnement provisoire des 16èmes à partir des classements actuels de groupes.
+    // Aucune simulation : on utilise uniquement les résultats déjà enregistrés.
+    const standings = safeComputeGroupStandings(matches);
+    const usedThirds = new Set();
+
     const rounds = TOURNAMENT_STRUCTURE.map(round => ({
       name: round.name,
       key: round.key,
       matches: round.matches.map(m => ({
         id: m.id,
-        home: resolveSlot(m.home, matchesById, m.id),
-        away: resolveSlot(m.away, matchesById, m.id),
+        home: resolveSlot(m.home, matchesById, m.id, standings, usedThirds),
+        away: resolveSlot(m.away, matchesById, m.id, standings, usedThirds),
         apiMatch: matchesById[m.id] || null
       }))
     }));
@@ -230,7 +284,6 @@
         // Chercher les matchs suivants qui attendent ce résultat
         for (let i = roundIndex + 1; i < rounds.length; i++) {
           rounds[i].matches.forEach(nextMatch => {
-            const homeRef = typeof m.apiMatch === 'object' ? m.apiMatch.id : null;
             const checkHome = nextMatch.apiMatch ? (nextMatch.apiMatch.team1 === `W${m.id}` || nextMatch.apiMatch.team1 === `L${m.id}`) : false;
             const checkAway = nextMatch.apiMatch ? (nextMatch.apiMatch.team2 === `W${m.id}` || nextMatch.apiMatch.team2 === `L${m.id}`) : false;
 
