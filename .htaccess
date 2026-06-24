@@ -11,12 +11,16 @@
 <IfModule mod_headers.c>
   # HTML principal : cache navigateur 5 minutes (déjà géré par balise meta, mais renforcé ici)
   <FilesMatch "index\.html$">
-    Header set Cache-Control "public, max-age=300, must-revalidate"
+    Header set Cache-Control "no-cache, no-store, must-revalidate"
+    Header set Pragma "no-cache"
+    Header set Expires "0"
   </FilesMatch>
 
-  # Assets statiques : 1 heure (CSS/JS/images)
+  # Assets statiques : invalidation temporaire du cache après déploiement
   <FilesMatch "\.(css|js|png|jpg|jpeg|gif|svg|webp|ico|woff|woff2|ttf|eot)$">
-    Header set Cache-Control "public, max-age=3600, immutable"
+    Header set Cache-Control "no-cache, no-store, must-revalidate"
+    Header set Pragma "no-cache"
+    Header set Expires "0"
   </FilesMatch>
 
   # API proxy : 30 secondes (cohérent avec le cache PHP)
