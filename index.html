@@ -556,6 +556,10 @@
     .standings-table tr.eliminated td { color: #ff5e52; }
     [data-theme="light"] .standings-table tr.eliminated { background: rgba(231, 76, 60, 0.08); }
     [data-theme="light"] .standings-table tr.eliminated td { color: #e74c3c; }
+    .standings-table tr.best-third { background: rgba(245, 208, 80, 0.18); }
+    .standings-table tr.best-third td { color: var(--color-gold); }
+    [data-theme="light"] .standings-table tr.best-third { background: rgba(245, 208, 80, 0.15); }
+    [data-theme="light"] .standings-table tr.best-third td { color: #b88a00; }
     @media (min-width: 1024px) { #standings-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--space-6); } }
 
     /* Phase finale */
@@ -748,6 +752,12 @@
     .goals-table-team { display: flex; align-items: center; gap: var(--space-2); font-size: var(--text-sm); }
     .goals-table-team .flag { flex: 0 0 auto; width: 24px; height: 16px; border-radius: 2px; object-fit: cover; box-shadow: 0 0 0 1px var(--color-border); }
     .goals-table-empty { color: var(--color-text-muted); font-style: italic; text-align: center; padding: var(--space-4) 0; }
+    .goals-header-badge {
+      display: inline-flex; align-items: center; justify-content: center;
+      min-width: 20px; height: 20px; padding: 0 6px; margin-left: var(--space-2);
+      background: var(--color-gold); color: #111; border-radius: 999px;
+      font-family: var(--font-body); font-size: 11px; font-weight: 700;
+    }
 
     /* Reduced motion */
     @media (prefers-reduced-motion: reduce) {
@@ -2106,6 +2116,24 @@
       return { type: 'team', label: arr[place - 1].team, stats: arr[place - 1] };
     }
 
+    function computeBestThirdTeams(standings) {
+      const allThirds = [];
+      Object.entries(standings).forEach(([group, teams]) => {
+        if (teams[2]) allThirds.push({ ...teams[2], group: group.replace(/^Groupe\s+/i, ''), place: 3 });
+      });
+      const bestThirds = allThirds
+        .sort((a, b) => {
+          if (b.points !== a.points) return b.points - a.points;
+          const aDiff = a.gf - a.ga;
+          const bDiff = b.gf - b.ga;
+          if (bDiff !== aDiff) return bDiff - aDiff;
+          if (b.gf !== a.gf) return b.gf - a.gf;
+          return a.team.localeCompare(b.team, 'fr');
+        })
+        .slice(0, 8);
+      return new Set(bestThirds.map(t => t.team));
+    }
+
     function getBestThirdSlot(standings, index) {
       const allThirds = [];
       Object.entries(standings).forEach(([group, teams]) => {
@@ -2225,6 +2253,7 @@
       const container = document.getElementById('standings-grid');
       if (!container) return;
       const standings = computeGroupStandings(matches);
+      const bestThirdTeams = computeBestThirdTeams(standings);
       const groups = Object.keys(standings).sort((a, b) => a.localeCompare(b, 'fr'));
       if (!groups.length) {
         container.innerHTML = '<p class="text-center" style="color: var(--color-text-muted); padding: var(--space-8) 0;">Aucun classement disponible pour le moment.</p>';
@@ -2234,7 +2263,12 @@
         const rows = standings[g].map((t, i) => {
           const diff = t.gf - t.ga;
           const diffStr = diff > 0 ? `+${diff}` : diff;
-          const rowClass = i < 2 ? 'qualified' : 'eliminated';
+          let rowClass = 'eliminated';
+          if (i < 2) {
+            rowClass = 'qualified';
+          } else if (i === 2 && bestThirdTeams.has(t.team)) {
+            rowClass = 'best-third';
+          }
           return `
             <tr class="${rowClass}">
               <td class="rank">${i + 1}</td>
@@ -2708,13 +2742,15 @@
       goalCounts.forEach(count => {
         const header = document.createElement('div');
         header.className = 'goals-table-header';
-        header.textContent = `${count} But${count > 1 ? 's' : ''}`;
+        const teamCount = (cols[count] || []).length;
+        header.innerHTML = `${count} But${count > 1 ? 's' : ''}<span class="goals-header-badge" aria-label="${teamCount} équipe${teamCount > 1 ? 's' : ''}">${teamCount}</span>`;
         headerRow.appendChild(header);
       });
       if (hasZeroColumn) {
         const header = document.createElement('div');
         header.className = 'goals-table-header';
-        header.textContent = '0 But';
+        const zeroCount = zeroGoalsTeams.length;
+        header.innerHTML = `0 But<span class="goals-header-badge" aria-label="${zeroCount} équipe${zeroCount > 1 ? 's' : ''}">${zeroCount}</span>`;
         headerRow.appendChild(header);
       }
       table.appendChild(headerRow);
