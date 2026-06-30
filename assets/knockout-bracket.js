@@ -10,6 +10,15 @@
 (function () {
   'use strict';
 
+  // Résultats de tirs au but pour les matchs de phase finale terminés à égalité.
+  // wcup2026.org ne fournit pas les penalties dans son endpoint public ; football-data.org
+  // ne publie pas non plus les 16èmes/8èmes en temps réel. On déclare ici les vainqueurs
+  // connus officiellement pour que l'arbre avance. Format : id du match => { home, away }.
+  const PENALTY_OVERRIDES = {
+    // Allemagne 1-1 Paraguay (TAB 4-5) -> Paraguay qualifié
+    73: { home: 4, away: 5 },
+  };
+
   const TOURNAMENT_STRUCTURE = [
     {
       name: '16èmes de finale',
@@ -356,8 +365,29 @@
     return { type: 'placeholder', label: translated };
   }
 
+  function applyPenaltyOverrides(matches) {
+    return matches.map(m => {
+      const override = PENALTY_OVERRIDES[m.id];
+      if (!override || !isFinished(m)) return m;
+      const s = m.score;
+      const homeScore = Array.isArray(s) ? Number(s[0]) : (s && typeof s === 'object' ? Number(s.fullTime ? s.fullTime.home : s.home) : NaN);
+      const awayScore = Array.isArray(s) ? Number(s[1]) : (s && typeof s === 'object' ? Number(s.fullTime ? s.fullTime.away : s.away) : NaN);
+      if (isNaN(homeScore) || isNaN(awayScore) || homeScore !== awayScore) return m;
+      // On a un match nul terminé avec un résultat de TAB connu
+      const newScore = {
+        ...(typeof s === 'object' && !Array.isArray(s) ? s : { fullTime: { home: homeScore, away: awayScore } }),
+        penalties: override,
+        winner: override.home > override.away ? 'home' : 'away',
+        duration: 'PENALTY_SHOOTOUT',
+      };
+      return { ...m, score: newScore };
+    });
+  }
+
   function buildLiveBracket(matches) {
     if (!matches || !matches.length) return null;
+
+    matches = applyPenaltyOverrides(matches);
 
     const matchesById = {};
     matches.forEach(m => {
