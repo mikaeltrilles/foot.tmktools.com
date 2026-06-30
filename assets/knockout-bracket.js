@@ -89,6 +89,7 @@
 
   function getMatchResult(match) {
     if (!match) return null;
+    if (match.score?.winner === 'home' || match.score?.winner === 'away') return match.score.winner;
     let home, away;
     if (match.score && typeof match.score === 'object') {
       if (match.score.fullTime) {
