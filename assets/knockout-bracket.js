@@ -130,6 +130,50 @@
     return getTeamSideName(match, result === 'home' ? 'away' : 'home');
   }
 
+  // Un nom d'équipe est un placeholder s'il n'a pas de drapeau connu,
+  // ou s'il correspond aux références dynamiques Wxx / Lxx / TBD.
+  function looksLikePlaceholder(name) {
+    if (!name || name === 'TBD' || name === '—') return true;
+    if (/^(W|L)\d+$/i.test(name)) return true;
+    if (safeFlagCode(name) === 'xx') return true;
+    return false;
+  }
+
+  // Résout une référence API de type W74 / L101 en utilisant le résultat du match référencé.
+  function resolveApiPlaceholder(name, matchesById) {
+    const winMatch = name.match(/^W(\d+)$/i);
+    if (winMatch) {
+      const refId = parseInt(winMatch[1], 10);
+      const refMatch = matchesById[refId];
+      if (isFinished(refMatch)) {
+        const winner = getMatchWinner(refMatch);
+        if (winner) return { type: 'team', label: safeTranslateTeamName(winner) };
+      }
+      return { type: 'placeholder', label: `Vainqueur ${refId}` };
+    }
+    const loseMatch = name.match(/^L(\d+)$/i);
+    if (loseMatch) {
+      const refId = parseInt(loseMatch[1], 10);
+      const refMatch = matchesById[refId];
+      if (isFinished(refMatch)) {
+        const loser = getMatchLoser(refMatch);
+        if (loser) return { type: 'team', label: safeTranslateTeamName(loser) };
+      }
+      return { type: 'placeholder', label: `Perdant ${refId}` };
+    }
+    return null;
+  }
+
+  function getApiTeamOrPlaceholder(apiMatch, side, matchesById) {
+    if (!apiMatch) return null;
+    const teamName = side === 'home' ? apiMatch.homeTeam?.name : apiMatch.awayTeam?.name;
+    if (!teamName) return null;
+    if (!looksLikePlaceholder(teamName)) {
+      return { type: 'team', label: safeTranslateTeamName(teamName) };
+    }
+    return resolveApiPlaceholder(teamName, matchesById);
+  }
+
   function roundLabelFromKey(key) {
     switch (key) {
       case 'ROUND_OF_32': return '16èmes de finale';
@@ -262,15 +306,25 @@
     const standings = safeComputeGroupStandings(matches);
     const usedThirds = new Set();
 
+    // Construire chaque match du bracket. On privilégie les noms d'équipe
+    // fournis par l'API (team1 / team2) car ce sont eux qui reflètent le
+    // véritable appariement du tournoi. Les placeholders Wxx/Lxx sont
+    // résolus dynamiquement via les résultats des matchs référencés.
+    // La structure hardcodée n'est conservée que comme fallback (layout).
     const rounds = TOURNAMENT_STRUCTURE.map(round => ({
       name: round.name,
       key: round.key,
-      matches: round.matches.map(m => ({
-        id: m.id,
-        home: resolveSlot(m.home, matchesById, m.id, standings, usedThirds),
-        away: resolveSlot(m.away, matchesById, m.id, standings, usedThirds),
-        apiMatch: matchesById[m.id] || null
-      }))
+      matches: round.matches.map(m => {
+        const apiMatch = matchesById[m.id] || null;
+        return {
+          id: m.id,
+          home: getApiTeamOrPlaceholder(apiMatch, 'home', matchesById)
+            || resolveSlot(m.home, matchesById, m.id, standings, usedThirds),
+          away: getApiTeamOrPlaceholder(apiMatch, 'away', matchesById)
+            || resolveSlot(m.away, matchesById, m.id, standings, usedThirds),
+          apiMatch
+        };
+      })
     }));
 
     // Propager les vainqueurs/perdants déjà connus aux matchs suivants pour afficher
