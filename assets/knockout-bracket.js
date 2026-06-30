@@ -87,9 +87,56 @@
     return 'xx';
   }
 
+  function getRegularTimeScore(match) {
+    if (!match || !match.score) return null;
+    const s = match.score;
+    if (s.regularTime) {
+      return {
+        home: Number(s.regularTime.home ?? 0),
+        away: Number(s.regularTime.away ?? 0),
+      };
+    }
+    // Fallback : si on n'a que le score final et pas de tirs au but, c'est le score régulier
+    if (!s.penalties && s.fullTime) {
+      return {
+        home: Number(s.fullTime.home),
+        away: Number(s.fullTime.away),
+      };
+    }
+    return null;
+  }
+
+  function hasPenaltyShootout(match) {
+    if (!match || !match.score) return false;
+    const s = match.score;
+    if (s.duration === 'PENALTY_SHOOTOUT') return true;
+    if (s.penalties && s.penalties.home != null && s.penalties.away != null) return true;
+    return false;
+  }
+
+  function getPenaltyResult(match) {
+    if (!hasPenaltyShootout(match)) return null;
+    const p = match.score.penalties;
+    if (!p || p.home == null || p.away == null) return null;
+    const home = Number(p.home);
+    const away = Number(p.away);
+    if (isNaN(home) || isNaN(away)) return null;
+    if (home > away) return 'home';
+    if (away > home) return 'away';
+    return 'draw';
+  }
+
   function getMatchResult(match) {
     if (!match) return null;
+
+    // Si le score enrichi contient déjà un vainqueur (football-data), on le prend
     if (match.score?.winner === 'home' || match.score?.winner === 'away') return match.score.winner;
+
+    // Tirs au but : vainqueur déterminé par les penalties
+    const penResult = getPenaltyResult(match);
+    if (penResult && penResult !== 'draw') return penResult;
+
+    // Résultat après prolongation / temps réglementaire
     let home, away;
     if (match.score && typeof match.score === 'object') {
       if (match.score.fullTime) {
@@ -103,6 +150,8 @@
     if (isNaN(home) || isNaN(away)) return null;
     if (home > away) return 'home';
     if (away > home) return 'away';
+
+    // Match nul sans tirs au but
     return 'draw';
   }
 
@@ -358,7 +407,7 @@
     return rounds;
   }
 
-  function teamHTML(team) {
+  function teamHTML(team, { penaltyNote = '', isWinner = false } = {}) {
     const isPlaceholder = team.type === 'placeholder';
     const label = team.label || '—';
     const flag = isPlaceholder ? 'xx' : safeFlagCode(label);
@@ -366,18 +415,46 @@
       flag !== 'xx'
         ? `<span class="flag-tiny" aria-hidden="true"><img src="https://flagcdn.com/${flag}.svg" alt="" loading="lazy" crossorigin="anonymous"></span>`
         : '<span class="flag-placeholder" aria-hidden="true"></span>';
+    const winnerClass = isWinner ? ' winner' : '';
+    const winnerIndicator = isWinner ? ' <span aria-hidden="true">✓</span>' : '';
+    const penaltyHTML = penaltyNote ? ` <span class="knockout-penalty-note">${penaltyNote}</span>` : '';
     return `
-      <div class="knockout-team ${isPlaceholder ? 'placeholder' : 'known'}">
-        <span class="knockout-team-name">${flagHTML} <span>${label}</span></span>
+      <div class="knockout-team ${isPlaceholder ? 'placeholder' : 'known'}${winnerClass}">
+        <span class="knockout-team-name">${flagHTML} <span>${label}${winnerIndicator}</span>${penaltyHTML}</span>
         <span class="knockout-score">-</span>
       </div>`;
   }
 
   function matchHTML(match, extraClass, note) {
+    const apiMatch = match.apiMatch;
+    const finished = apiMatch && isFinished(apiMatch);
+    const penResult = finished ? getPenaltyResult(apiMatch) : null;
+    const result = finished ? getMatchResult(apiMatch) : null;
+    const hasPenalties = finished && hasPenaltyShootout(apiMatch);
+    const penHome = hasPenalties ? apiMatch.score.penalties.home : null;
+    const penAway = hasPenalties ? apiMatch.score.penalties.away : null;
+
+    // Affichage du résultat dans le bracket : score régulier + TAB entre parenthèses
+    const scoreMain =
+      finished && apiMatch.score?.fullTime
+        ? `${apiMatch.score.fullTime.home} – ${apiMatch.score.fullTime.away}`
+        : '-';
+    const scorePen =
+      hasPenalties ? ` (${penHome}–${penAway} TAB)` : '';
+    const scoreHTML = `<div class="knockout-match-score">${scoreMain}${scorePen}</div>`;
+
+    const homeWinner = result === 'home';
+    const awayWinner = result === 'away';
+    const homePenaltyNote =
+      hasPenalties && homeWinner ? `TAB ${penHome}` : '';
+    const awayPenaltyNote =
+      hasPenalties && awayWinner ? `TAB ${penAway}` : '';
+
     return `
       <article class="knockout-match ${extraClass || ''}" role="listitem" data-match-id="${match.id || ''}">
-        ${teamHTML(match.home)}
-        ${teamHTML(match.away)}
+        ${teamHTML(match.home, { isWinner: homeWinner, penaltyNote: homePenaltyNote })}
+        ${teamHTML(match.away, { isWinner: awayWinner, penaltyNote: awayPenaltyNote })}
+        ${scoreHTML}
         <div class="knockout-match-note">${note}</div>
       </article>`;
   }
@@ -401,7 +478,14 @@
       html += `<div class="knockout-col" data-round="${i}">
         <div class="knockout-round-title">${rounds[i].name}</div>
         <div class="knockout-matches">
-          ${rounds[i].matches.map((m) => matchHTML(m, '', m.apiMatch && isFinished(m.apiMatch) ? 'Qualifié' : 'À déterminer')).join('')}
+          ${rounds[i].matches.map((m) => {
+            const finished = m.apiMatch && isFinished(m.apiMatch);
+            const hasPen = finished && hasPenaltyShootout(m.apiMatch);
+            const note = finished
+              ? (hasPen ? 'Gagné aux tirs au but' : 'Qualifié')
+              : 'À déterminer';
+            return matchHTML(m, '', note);
+          }).join('')}
         </div>
       </div>`;
     }
@@ -412,11 +496,21 @@
     html += `<div class="knockout-col final-col" data-round="4">
       <div class="final-block">
         <div class="knockout-round-title">${finalRound ? finalRound.name : 'Finale'}</div>
-        ${finalRound ? matchHTML(finalRound.matches[0], 'final-match', '🏆 À déterminer') : ''}
+        ${finalRound ? (() => {
+          const m = finalRound.matches[0];
+          const finished = m.apiMatch && isFinished(m.apiMatch);
+          const hasPen = finished && hasPenaltyShootout(m.apiMatch);
+          return matchHTML(m, 'final-match', finished ? (hasPen ? '🏆 Gagné aux tirs au but' : '🏆 Vainqueur') : '🏆 À déterminer');
+        })() : ''}
       </div>
       <div class="third-block">
         <div class="knockout-round-title">${thirdRound ? thirdRound.name : '3ème place'}</div>
-        ${thirdRound ? matchHTML(thirdRound.matches[0], 'third-place-match', '3ème place') : ''}
+        ${thirdRound ? (() => {
+          const m = thirdRound.matches[0];
+          const finished = m.apiMatch && isFinished(m.apiMatch);
+          const hasPen = finished && hasPenaltyShootout(m.apiMatch);
+          return matchHTML(m, 'third-place-match', finished ? (hasPen ? 'Gagné aux tirs au but' : '3ème place') : '3ème place');
+        })() : ''}
       </div>
     </div>`;
 
