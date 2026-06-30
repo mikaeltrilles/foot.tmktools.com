@@ -27,7 +27,7 @@
   display: flex;
   align-items: center;
   gap: var(--space-5);
-  min-width: 1100px;
+  min-width: 1300px;
   position: relative;
   z-index: 1;
 }
@@ -35,14 +35,14 @@
 @media (min-width: 1280px) {
   .knockout-bracket {
     gap: var(--space-7);
-    min-width: 1300px;
+    min-width: 1600px;
   }
 }
 
 @media (min-width: 1600px) {
   .knockout-bracket {
     gap: var(--space-8);
-    min-width: 1500px;
+    min-width: 1900px;
   }
 }
 
@@ -98,7 +98,7 @@
 
 /* ── Carte de match ── */
 .knockout-match {
-  --kb-match-w: 180px;
+  --kb-match-w: 220px;
   width: var(--kb-match-w);
   height: var(--kb-match-h);
   display: grid;
@@ -113,13 +113,13 @@
 
 @media (min-width: 1280px) {
   .knockout-match {
-    --kb-match-w: 210px;
+    --kb-match-w: 260px;
   }
 }
 
 @media (min-width: 1600px) {
   .knockout-match {
-    --kb-match-w: 230px;
+    --kb-match-w: 300px;
   }
 }
 
@@ -139,16 +139,16 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--space-2);
-  padding: 0 var(--space-2);
-  font-size: 11px;
+  padding: 0 var(--space-3);
+  font-size: 12px;
   font-weight: 600;
   line-height: 1.2;
 }
 
 @media (min-width: 1280px) {
   .knockout-team {
-    padding: 0 var(--space-3);
-    font-size: var(--text-xs);
+    padding: 0 var(--space-4);
+    font-size: var(--text-sm);
   }
 }
 
@@ -191,6 +191,8 @@
 .knockout-team-name .flag-tiny,
 .knockout-team-name .flag-placeholder {
   flex-shrink: 0;
+  width: 28px;
+  height: 18px;
 }
 
 .knockout-team-name span {
@@ -205,8 +207,16 @@
   font-weight: 700;
   flex-shrink: 0;
   color: var(--color-text-muted);
-  min-width: 28px;
+  min-width: 34px;
   text-align: right;
+  font-size: var(--text-sm);
+}
+
+@media (min-width: 1280px) {
+  .knockout-score {
+    min-width: 40px;
+    font-size: var(--text-base);
+  }
 }
 
 .knockout-team.known .knockout-score {
