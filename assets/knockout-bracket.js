@@ -38,7 +38,7 @@
       key: 'ROUND_OF_16',
       matches: [
         { id: 88, home: { winnerOf: 74 }, away: { winnerOf: 77 } },
-        { id: 89, home: { winnerOf: 73 }, away: { winnerOf: 75 } },
+        { id: 89, home: { winnerOf: 72 }, away: { winnerOf: 75 } },
         { id: 90, home: { winnerOf: 76 }, away: { winnerOf: 78 } },
         { id: 91, home: { winnerOf: 79 }, away: { winnerOf: 80 } },
         { id: 92, home: { winnerOf: 83 }, away: { winnerOf: 84 } },
@@ -115,6 +115,9 @@
     if (s.fullTime && s.fullTime.home != null && s.fullTime.away != null) {
       return Number(s.fullTime[side === 'home' ? 'home' : 'away']);
     }
+    if (Array.isArray(s) && s.length >= 2) {
+      return Number(s[side === 'home' ? 0 : 1]);
+    }
     return '-';
   }
 
@@ -175,8 +178,10 @@
 
   function getTeamSideName(match, side) {
     if (!match) return null;
-    const team = side === 'home' ? match.homeTeam : match.awayTeam;
-    return team?.name || null;
+    const teamName = side === 'home'
+      ? (match.homeTeam?.name || match.team1)
+      : (match.awayTeam?.name || match.team2);
+    return teamName || null;
   }
 
   function getMatchWinner(match) {
@@ -227,7 +232,10 @@
 
   function getApiTeamOrPlaceholder(apiMatch, side, matchesById) {
     if (!apiMatch) return null;
-    const teamName = side === 'home' ? apiMatch.homeTeam?.name : apiMatch.awayTeam?.name;
+    // wcup2026.org expose team1 / team2 ; football-data expose homeTeam / awayTeam
+    const teamName = side === 'home'
+      ? (apiMatch.homeTeam?.name || apiMatch.team1)
+      : (apiMatch.awayTeam?.name || apiMatch.team2);
     if (!teamName) return null;
     if (!looksLikePlaceholder(teamName)) {
       return { type: 'team', label: safeTranslateTeamName(teamName) };
