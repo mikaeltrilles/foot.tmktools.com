@@ -1,7 +1,10 @@
 /* ═══════════════════════════════════════════════════════════════════════════
    BRACKET COUPE DU MONDE — Phase finale (projection)
+   Arbre de tournoi responsive : placement des équipes et scores,
+   dimensions des cartes de match et connecteurs SVG.
    ═══════════════════════════════════════════════════════════════════════════ */
 
+/* ── Conteneur & défilement ── */
 .knockout-bracket-wrapper {
   position: relative;
   overflow-x: auto;
@@ -19,29 +22,31 @@
   }
 }
 
+/* ── Grille des tours ── */
 .knockout-bracket {
   display: flex;
   align-items: center;
-  gap: var(--space-6);
-  min-width: 1350px;
+  gap: var(--space-5);
+  min-width: 1100px;
   position: relative;
   z-index: 1;
 }
 
 @media (min-width: 1280px) {
   .knockout-bracket {
-    gap: var(--space-8);
-    min-width: 1500px;
+    gap: var(--space-7);
+    min-width: 1300px;
   }
 }
 
 @media (min-width: 1600px) {
   .knockout-bracket {
-    gap: var(--space-10);
-    min-width: 1650px;
+    gap: var(--space-8);
+    min-width: 1500px;
   }
 }
 
+/* Variables de taille partagées par tous les matchs d'une colonne */
 .knockout-col {
   display: flex;
   flex-direction: column;
@@ -49,6 +54,22 @@
   flex: 0 0 auto;
   position: relative;
   z-index: 1;
+  --kb-match-h: 96px;
+  --kb-gap: 6px;
+}
+
+@media (min-width: 1280px) {
+  .knockout-col {
+    --kb-match-h: 104px;
+    --kb-gap: 8px;
+  }
+}
+
+@media (min-width: 1600px) {
+  .knockout-col {
+    --kb-match-h: 108px;
+    --kb-gap: 10px;
+  }
 }
 
 .knockout-col.final-col {
@@ -56,6 +77,7 @@
   gap: var(--space-8);
 }
 
+/* ── Titres des tours ── */
 .knockout-round-title {
   font-family: var(--font-display);
   font-size: var(--text-xs);
@@ -64,7 +86,7 @@
   text-transform: uppercase;
   letter-spacing: 0.05em;
   text-align: center;
-  margin-bottom: var(--space-4);
+  margin-bottom: var(--space-3);
   white-space: nowrap;
 }
 
@@ -74,11 +96,13 @@
   justify-content: center;
 }
 
+/* ── Carte de match ── */
 .knockout-match {
-  width: 150px;
-  height: 80px;
-  display: flex;
-  flex-direction: column;
+  --kb-match-w: 180px;
+  width: var(--kb-match-w);
+  height: var(--kb-match-h);
+  display: grid;
+  grid-template-rows: 1fr 1fr auto;
   background: var(--color-surface-2);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
@@ -89,15 +113,13 @@
 
 @media (min-width: 1280px) {
   .knockout-match {
-    width: 180px;
-    height: 86px;
+    --kb-match-w: 210px;
   }
 }
 
 @media (min-width: 1600px) {
   .knockout-match {
-    width: 200px;
-    height: 90px;
+    --kb-match-w: 230px;
   }
 }
 
@@ -111,8 +133,8 @@
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
 }
 
+/* ── Ligne équipe (nom + score) ── */
 .knockout-team {
-  flex: 1 1 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -120,7 +142,7 @@
   padding: 0 var(--space-2);
   font-size: 11px;
   font-weight: 600;
-  min-height: 0;
+  line-height: 1.2;
 }
 
 @media (min-width: 1280px) {
@@ -136,16 +158,27 @@
 
 .knockout-team.known {
   color: var(--color-text);
+  background: rgba(61, 220, 132, 0.06);
 }
 
 .knockout-team.placeholder {
   color: var(--color-text-faint);
   font-style: italic;
+  background: transparent;
 }
 
-.knockout-team.known {
-  color: var(--color-text);
-  background: rgba(61, 220, 132, 0.08);
+.knockout-team.placeholder .knockout-score {
+  color: var(--color-text-faint);
+}
+
+/* Vainqueur mis en avant */
+.knockout-team.winner {
+  background: rgba(61, 220, 132, 0.14);
+  color: var(--color-primary);
+}
+
+.knockout-team.winner .knockout-score {
+  color: var(--color-primary);
 }
 
 .knockout-team-name {
@@ -166,15 +199,30 @@
   text-overflow: ellipsis;
 }
 
+/* Score aligné à droite */
 .knockout-score {
   font-family: var(--font-display);
   font-weight: 700;
   flex-shrink: 0;
   color: var(--color-text-muted);
+  min-width: 28px;
+  text-align: right;
 }
 
+.knockout-team.known .knockout-score {
+  color: var(--color-text);
+}
+
+/* Note de tirs au but */
+.knockout-penalty-note {
+  font-size: 9px;
+  color: var(--color-gold);
+  margin-left: var(--space-1);
+  white-space: nowrap;
+}
+
+/* Ligne centrale de note (qualifié, à déterminer, etc.) */
 .knockout-match-note {
-  flex: 0 0 18px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -183,6 +231,7 @@
   color: var(--color-text-faint);
   border-top: 1px dashed var(--color-border);
   background: var(--color-surface);
+  padding: 2px 0;
 }
 
 @media (min-width: 1280px) {
@@ -191,25 +240,9 @@
   }
 }
 
-/* Trophy / final highlight */
-.knockout-match.final-match {
-  border-color: var(--color-gold);
-  background: rgba(245, 208, 80, 0.08);
-}
-
-.knockout-match.final-match .knockout-round-title {
-  color: var(--color-gold);
-}
-
-.knockout-match.third-place-match {
-  border-color: var(--color-primary);
-  opacity: 0.95;
-}
-
-/* Spacing per round — creates the classic tournament tree alignment.
-   Round 0 = 16èmes (16 matchs), round 1 = 8èmes (8), round 2 = quarts (4), round 3 = demis (2), round 4 = finale/3ème. */
+/* ── Espacement progressif des tours pour l’arbre classique ── */
 .knockout-col[data-round="0"] .knockout-match {
-  margin-bottom: 6px;
+  margin-bottom: var(--kb-gap);
 }
 
 .knockout-col[data-round="0"] .knockout-match:last-child {
@@ -217,7 +250,7 @@
 }
 
 .knockout-col[data-round="1"] .knockout-match {
-  margin-bottom: calc(6px + 80px);
+  margin-bottom: calc(var(--kb-gap) + var(--kb-match-h));
 }
 
 .knockout-col[data-round="1"] .knockout-match:last-child {
@@ -225,7 +258,7 @@
 }
 
 .knockout-col[data-round="2"] .knockout-match {
-  margin-bottom: calc((6px + 80px) * 2 + 80px);
+  margin-bottom: calc((var(--kb-gap) + var(--kb-match-h)) * 2 + var(--kb-match-h));
 }
 
 .knockout-col[data-round="2"] .knockout-match:last-child {
@@ -233,54 +266,25 @@
 }
 
 .knockout-col[data-round="3"] .knockout-match {
-  margin-bottom: calc(((6px + 80px) * 2 + 80px) * 2 + 80px);
+  margin-bottom: calc(((var(--kb-gap) + var(--kb-match-h)) * 2 + var(--kb-match-h)) * 2 + var(--kb-match-h));
 }
 
 .knockout-col[data-round="3"] .knockout-match:last-child {
   margin-bottom: 0;
 }
 
-.knockout-col[data-round="4"] .knockout-match {
-  margin-bottom: 0;
+/* ── Finale & 3ème place ── */
+.knockout-match.final-match {
+  border-color: var(--color-gold);
+  background: rgba(245, 208, 80, 0.08);
 }
 
-@media (min-width: 1280px) {
-  .knockout-col[data-round="0"] .knockout-match {
-    margin-bottom: 8px;
-  }
-
-  .knockout-col[data-round="1"] .knockout-match {
-    margin-bottom: calc(8px + 86px);
-  }
-
-  .knockout-col[data-round="2"] .knockout-match {
-    margin-bottom: calc((8px + 86px) * 2 + 86px);
-  }
-
-  .knockout-col[data-round="3"] .knockout-match {
-    margin-bottom: calc(((8px + 86px) * 2 + 86px) * 2 + 86px);
-  }
+.knockout-match.third-place-match {
+  border-color: var(--color-primary);
+  opacity: 0.95;
 }
 
-@media (min-width: 1600px) {
-  .knockout-col[data-round="0"] .knockout-match {
-    margin-bottom: 10px;
-  }
-
-  .knockout-col[data-round="1"] .knockout-match {
-    margin-bottom: calc(10px + 90px);
-  }
-
-  .knockout-col[data-round="2"] .knockout-match {
-    margin-bottom: calc((10px + 90px) * 2 + 90px);
-  }
-
-  .knockout-col[data-round="3"] .knockout-match {
-    margin-bottom: calc(((10px + 90px) * 2 + 90px) * 2 + 90px);
-  }
-}
-
-/* SVG connectors layer */
+/* ── Calque SVG des connecteurs ── */
 .knockout-connectors {
   position: absolute;
   top: 0;
@@ -306,7 +310,7 @@
   stroke-width: 2.5;
 }
 
-/* Empty state */
+/* ── États vides / aide au scroll ── */
 .knockout-empty {
   background: var(--color-surface-2);
   border: 1px dashed var(--color-border);
@@ -317,7 +321,6 @@
   font-size: var(--text-xs);
 }
 
-/* Scroll hint on mobile */
 .knockout-scroll-hint {
   display: block;
   text-align: center;

@@ -106,6 +106,18 @@
     return null;
   }
 
+  function getTeamScore(match, side) {
+    if (!match || !match.score) return '-';
+    const s = match.score;
+    if (s.regularTime && s.regularTime.home != null && s.regularTime.away != null) {
+      return Number(s.regularTime[side === 'home' ? 'home' : 'away']);
+    }
+    if (s.fullTime && s.fullTime.home != null && s.fullTime.away != null) {
+      return Number(s.fullTime[side === 'home' ? 'home' : 'away']);
+    }
+    return '-';
+  }
+
   function hasPenaltyShootout(match) {
     if (!match || !match.score) return false;
     const s = match.score;
@@ -407,7 +419,7 @@
     return rounds;
   }
 
-  function teamHTML(team, { penaltyNote = '', isWinner = false } = {}) {
+  function teamHTML(team, { score = '-', isWinner = false, penaltyNote = '' } = {}) {
     const isPlaceholder = team.type === 'placeholder';
     const label = team.label || '—';
     const flag = isPlaceholder ? 'xx' : safeFlagCode(label);
@@ -420,8 +432,8 @@
     const penaltyHTML = penaltyNote ? ` <span class="knockout-penalty-note">${penaltyNote}</span>` : '';
     return `
       <div class="knockout-team ${isPlaceholder ? 'placeholder' : 'known'}${winnerClass}">
-        <span class="knockout-team-name">${flagHTML} <span>${label}${winnerIndicator}</span>${penaltyHTML}</span>
-        <span class="knockout-score">-</span>
+        <span class="knockout-team-name">${flagHTML} <span>${label}${winnerIndicator}</span></span>
+        <span class="knockout-score">${score}${penaltyHTML}</span>
       </div>`;
   }
 
@@ -434,14 +446,8 @@
     const penHome = hasPenalties ? apiMatch.score.penalties.home : null;
     const penAway = hasPenalties ? apiMatch.score.penalties.away : null;
 
-    // Affichage du résultat dans le bracket : score régulier + TAB entre parenthèses
-    const scoreMain =
-      finished && apiMatch.score?.fullTime
-        ? `${apiMatch.score.fullTime.home} – ${apiMatch.score.fullTime.away}`
-        : '-';
-    const scorePen =
-      hasPenalties ? ` (${penHome}–${penAway} TAB)` : '';
-    const scoreHTML = `<div class="knockout-match-score">${scoreMain}${scorePen}</div>`;
+    const homeScore = finished ? getTeamScore(apiMatch, 'home') : '-';
+    const awayScore = finished ? getTeamScore(apiMatch, 'away') : '-';
 
     const homeWinner = result === 'home';
     const awayWinner = result === 'away';
@@ -452,9 +458,8 @@
 
     return `
       <article class="knockout-match ${extraClass || ''}" role="listitem" data-match-id="${match.id || ''}">
-        ${teamHTML(match.home, { isWinner: homeWinner, penaltyNote: homePenaltyNote })}
-        ${teamHTML(match.away, { isWinner: awayWinner, penaltyNote: awayPenaltyNote })}
-        ${scoreHTML}
+        ${teamHTML(match.home, { score: homeScore, isWinner: homeWinner, penaltyNote: homePenaltyNote })}
+        ${teamHTML(match.away, { score: awayScore, isWinner: awayWinner, penaltyNote: awayPenaltyNote })}
         <div class="knockout-match-note">${note}</div>
       </article>`;
   }
