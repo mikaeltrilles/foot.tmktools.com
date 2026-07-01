@@ -23,71 +23,74 @@
     {
       name: '16èmes de finale',
       key: 'ROUND_OF_32',
-      // Ordre aligné sur les appariements des 8èmes : deux 16èmes consécutifs
-      // alimentent un seul 8ème, afin que les vainqueurs soient face à face
-      // dans la colonne suivante et que les connecteurs SVG restent cohérents.
+      // Bracket officiel FIFA 2026 (matchs 73-88 FIFA = ids 72-87 ici).
+      // Les 3 têtes de série hardcodées ont été remplacées par leur slot de
+      // groupe afin que les classements réels positionnent les bonnes équipes.
       matches: [
-        { id: 72, home: '2A', away: '2B' },
-        { id: 73, home: 'Germany', away: '3A/B/C/D/F' },
-        { id: 74, home: '1F', away: '2C' },
-        { id: 75, home: '1C', away: '2F' },
-        { id: 76, home: '1I', away: '3C/D/F/G/H' },
-        { id: 77, home: '2E', away: '2I' },
-        { id: 78, home: 'Mexico', away: '3C/E/F/H/I' },
-        { id: 79, home: '1L', away: '3E/H/I/J/K' },
-        { id: 80, home: 'USA', away: '3B/E/F/I/J' },
-        { id: 81, home: '1G', away: '3A/E/H/I/J' },
-        { id: 82, home: '2K', away: '2L' },
-        { id: 83, home: '1H', away: '2J' },
-        { id: 84, home: '1B', away: '3E/F/G/I/J' },
-        { id: 85, home: '1J', away: '2H' },
-        { id: 86, home: '1K', away: '3D/E/I/J/L' },
-        { id: 87, home: '2D', away: '2G' }
+        { id: 72, home: '2A', away: '2B' },          // FIFA 73
+        { id: 73, home: '1E', away: '3A/B/C/D/F' },  // FIFA 74 (ex Germany)
+        { id: 74, home: '1F', away: '2C' },          // FIFA 75
+        { id: 75, home: '1C', away: '2F' },          // FIFA 76
+        { id: 76, home: '1I', away: '3C/D/F/G/H' },  // FIFA 77
+        { id: 77, home: '2E', away: '2I' },          // FIFA 78
+        { id: 78, home: '1A', away: '3C/E/F/H/I' },  // FIFA 79 (ex Mexico)
+        { id: 79, home: '1L', away: '3E/H/I/J/K' },  // FIFA 80
+        { id: 80, home: '1D', away: '3B/E/F/I/J' },  // FIFA 81 (ex USA)
+        { id: 81, home: '1G', away: '3A/E/H/I/J' },  // FIFA 82
+        { id: 82, home: '2K', away: '2L' },          // FIFA 83
+        { id: 83, home: '1H', away: '2J' },          // FIFA 84
+        { id: 84, home: '1B', away: '3E/F/G/I/J' },  // FIFA 85
+        { id: 85, home: '1J', away: '2H' },          // FIFA 86
+        { id: 86, home: '1K', away: '3D/E/I/J/L' },  // FIFA 87
+        { id: 87, home: '2D', away: '2G' }           // FIFA 88
       ]
     },
     {
       name: '8èmes de finale',
       key: 'ROUND_OF_16',
-      // Chaque 8ème reçoit les vainqueurs des deux 16èmes placés juste au-dessus
-      // dans la colonne précédente (ordre naturel du bracket FIFA 2026).
+      // Appariements FIFA 2026 (matchs 89-96 FIFA = ids 88-95 ici).
       matches: [
-        { id: 88, home: { winnerOf: 72 }, away: { winnerOf: 73 } },
-        { id: 89, home: { winnerOf: 74 }, away: { winnerOf: 75 } },
-        { id: 90, home: { winnerOf: 76 }, away: { winnerOf: 77 } },
-        { id: 91, home: { winnerOf: 78 }, away: { winnerOf: 79 } },
-        { id: 92, home: { winnerOf: 80 }, away: { winnerOf: 81 } },
-        { id: 93, home: { winnerOf: 82 }, away: { winnerOf: 83 } },
-        { id: 94, home: { winnerOf: 84 }, away: { winnerOf: 85 } },
-        { id: 95, home: { winnerOf: 86 }, away: { winnerOf: 87 } }
+        { id: 88, home: { winnerOf: 73 }, away: { winnerOf: 76 } }, // FIFA 89 : W74 vs W77
+        { id: 89, home: { winnerOf: 72 }, away: { winnerOf: 74 } }, // FIFA 90 : W73 vs W75
+        { id: 90, home: { winnerOf: 75 }, away: { winnerOf: 77 } }, // FIFA 91 : W76 vs W78
+        { id: 91, home: { winnerOf: 78 }, away: { winnerOf: 79 } }, // FIFA 92 : W79 vs W80
+        { id: 92, home: { winnerOf: 82 }, away: { winnerOf: 83 } }, // FIFA 93 : W83 vs W84
+        { id: 93, home: { winnerOf: 80 }, away: { winnerOf: 81 } }, // FIFA 94 : W81 vs W82
+        { id: 94, home: { winnerOf: 85 }, away: { winnerOf: 87 } }, // FIFA 95 : W86 vs W88
+        { id: 95, home: { winnerOf: 84 }, away: { winnerOf: 86 } }  // FIFA 96 : W85 vs W87
       ]
     },
     {
       name: 'Quarts de finale',
       key: 'QUARTER_FINALS',
+      // Appariements FIFA 2026 (matchs 97-100 FIFA = ids 96-99 ici).
       matches: [
-        { id: 96, home: { winnerOf: 89 }, away: { winnerOf: 90 } },
-        { id: 97, home: { winnerOf: 93 }, away: { winnerOf: 94 } },
-        { id: 98, home: { winnerOf: 91 }, away: { winnerOf: 92 } },
-        { id: 99, home: { winnerOf: 95 }, away: { winnerOf: 96 } }
+        { id: 96, home: { winnerOf: 88 }, away: { winnerOf: 89 } }, // FIFA 97 : W89 vs W90
+        { id: 97, home: { winnerOf: 92 }, away: { winnerOf: 93 } }, // FIFA 98 : W93 vs W94
+        { id: 98, home: { winnerOf: 90 }, away: { winnerOf: 91 } }, // FIFA 99 : W91 vs W92
+        { id: 99, home: { winnerOf: 94 }, away: { winnerOf: 95 } }  // FIFA 100 : W95 vs W96
       ]
     },
     {
       name: 'Demi-finales',
       key: 'SEMI_FINALS',
+      // Appariements FIFA 2026 (matchs 101-102 FIFA = ids 100-101 ici).
       matches: [
-        { id: 100, home: { winnerOf: 97 }, away: { winnerOf: 98 } },
-        { id: 101, home: { winnerOf: 99 }, away: { winnerOf: 100 } }
+        { id: 100, home: { winnerOf: 96 }, away: { winnerOf: 97 } }, // FIFA 101 : W97 vs W98
+        { id: 101, home: { winnerOf: 98 }, away: { winnerOf: 99 } }  // FIFA 102 : W99 vs W100
       ]
     },
     {
       name: 'Finale',
       key: 'FINAL',
-      matches: [{ id: 103, home: { winnerOf: 101 }, away: { winnerOf: 102 } }]
+      // Appariement FIFA 2026 (match 104 FIFA = id 103 ici).
+      matches: [{ id: 103, home: { winnerOf: 100 }, away: { winnerOf: 101 } }]
     },
     {
       name: '3ème place',
       key: 'THIRD_PLACE',
-      matches: [{ id: 102, home: { loserOf: 101 }, away: { loserOf: 100 } }]
+      // Appariement FIFA 2026 (match 103 FIFA = id 102 ici).
+      matches: [{ id: 102, home: { loserOf: 100 }, away: { loserOf: 101 } }]
     }
   ];
 
