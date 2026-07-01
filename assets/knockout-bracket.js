@@ -415,19 +415,28 @@
       key: round.key,
       matches: round.matches.map(m => {
         const apiMatch = matchesById[m.id] || null;
+        const builtHome = getApiTeamOrPlaceholder(apiMatch, 'home', matchesById)
+          || resolveSlot(m.home, matchesById, m.id, standings, usedThirds);
+        const builtAway = getApiTeamOrPlaceholder(apiMatch, 'away', matchesById)
+          || resolveSlot(m.away, matchesById, m.id, standings, usedThirds);
         return {
           id: m.id,
-          home: getApiTeamOrPlaceholder(apiMatch, 'home', matchesById)
-            || resolveSlot(m.home, matchesById, m.id, standings, usedThirds),
-          away: getApiTeamOrPlaceholder(apiMatch, 'away', matchesById)
-            || resolveSlot(m.away, matchesById, m.id, standings, usedThirds),
+          home: builtHome,
+          away: builtAway,
+          // On garde une trace de la référence d'origine pour propager les vainqueurs
+          // lorsque l'API n'a pas encore publié le match suivant.
+          homeRef: typeof m.home === 'object' ? m.home : null,
+          awayRef: typeof m.away === 'object' ? m.away : null,
           apiMatch
         };
       })
     }));
 
     // Propager les vainqueurs/perdants déjà connus aux matchs suivants pour afficher
-    // le chemin qualificatif dès qu'un résultat est officiel.
+    // le chemin qualificatif dès qu'un résultat est officiel. On prend en compte
+    // aussi les références Wxx/Lxx définies dans la structure hardcodée lorsque
+    // l'API n'a pas encore publié le match suivant (cas des 8èmes avant l'ouverture
+    // officielle de l'API pour ce tour).
     rounds.forEach((round, roundIndex) => {
       round.matches.forEach(m => {
         if (!m.apiMatch || !isFinished(m.apiMatch)) return;
@@ -438,15 +447,22 @@
         // Chercher les matchs suivants qui attendent ce résultat
         for (let i = roundIndex + 1; i < rounds.length; i++) {
           rounds[i].matches.forEach(nextMatch => {
-            const checkHome = nextMatch.apiMatch ? (nextMatch.apiMatch.team1 === `W${m.id}` || nextMatch.apiMatch.team1 === `L${m.id}`) : false;
-            const checkAway = nextMatch.apiMatch ? (nextMatch.apiMatch.team2 === `W${m.id}` || nextMatch.apiMatch.team2 === `L${m.id}`) : false;
+            // Référence API si le match est déjà connu de l'API, sinon structure hardcodée
+            const nextHomeRef = nextMatch.apiMatch?.team1
+              || nextMatch.homeRef
+              || (typeof nextMatch.home === 'string' ? nextMatch.home : nextMatch.home?.label);
+            const nextAwayRef = nextMatch.apiMatch?.team2
+              || nextMatch.awayRef
+              || (typeof nextMatch.away === 'string' ? nextMatch.away : nextMatch.away?.label);
+            const checkHome = typeof nextHomeRef === 'string' && (nextHomeRef === `W${m.id}` || nextHomeRef === `L${m.id}`);
+            const checkAway = typeof nextAwayRef === 'string' && (nextAwayRef === `W${m.id}` || nextAwayRef === `L${m.id}`);
 
             if (checkHome) {
-              const isLoser = nextMatch.apiMatch.team1.startsWith('L');
+              const isLoser = nextHomeRef.startsWith('L');
               nextMatch.home = { type: 'team', label: safeTranslateTeamName(isLoser ? loser : winner) };
             }
             if (checkAway) {
-              const isLoser = nextMatch.apiMatch.team2.startsWith('L');
+              const isLoser = nextAwayRef.startsWith('L');
               nextMatch.away = { type: 'team', label: safeTranslateTeamName(isLoser ? loser : winner) };
             }
           });
