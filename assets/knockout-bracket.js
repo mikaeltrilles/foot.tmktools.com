@@ -23,6 +23,9 @@
     {
       name: '16èmes de finale',
       key: 'ROUND_OF_32',
+      // Ordre aligné sur les appariements des 8èmes : deux 16èmes consécutifs
+      // alimentent un seul 8ème, afin que les vainqueurs soient face à face
+      // dans la colonne suivante et que les connecteurs SVG restent cohérents.
       matches: [
         { id: 72, home: '2A', away: '2B' },
         { id: 73, home: 'Germany', away: '3A/B/C/D/F' },
@@ -45,15 +48,17 @@
     {
       name: '8èmes de finale',
       key: 'ROUND_OF_16',
+      // Chaque 8ème reçoit les vainqueurs des deux 16èmes placés juste au-dessus
+      // dans la colonne précédente (ordre naturel du bracket FIFA 2026).
       matches: [
-        { id: 88, home: { winnerOf: 74 }, away: { winnerOf: 77 } },
-        { id: 89, home: { winnerOf: 72 }, away: { winnerOf: 75 } },
-        { id: 90, home: { winnerOf: 76 }, away: { winnerOf: 78 } },
-        { id: 91, home: { winnerOf: 79 }, away: { winnerOf: 80 } },
-        { id: 92, home: { winnerOf: 83 }, away: { winnerOf: 84 } },
-        { id: 93, home: { winnerOf: 81 }, away: { winnerOf: 82 } },
-        { id: 94, home: { winnerOf: 86 }, away: { winnerOf: 88 } },
-        { id: 95, home: { winnerOf: 85 }, away: { winnerOf: 87 } }
+        { id: 88, home: { winnerOf: 72 }, away: { winnerOf: 73 } },
+        { id: 89, home: { winnerOf: 74 }, away: { winnerOf: 75 } },
+        { id: 90, home: { winnerOf: 76 }, away: { winnerOf: 77 } },
+        { id: 91, home: { winnerOf: 78 }, away: { winnerOf: 79 } },
+        { id: 92, home: { winnerOf: 80 }, away: { winnerOf: 81 } },
+        { id: 93, home: { winnerOf: 82 }, away: { winnerOf: 83 } },
+        { id: 94, home: { winnerOf: 84 }, away: { winnerOf: 85 } },
+        { id: 95, home: { winnerOf: 86 }, away: { winnerOf: 87 } }
       ]
     },
     {
