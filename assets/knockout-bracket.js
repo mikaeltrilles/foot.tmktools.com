@@ -15,8 +15,8 @@
   // ne publie pas non plus les 16èmes/8èmes en temps réel. On déclare ici les vainqueurs
   // connus officiellement pour que l'arbre avance. Format : id du match => { home, away }.
   const PENALTY_OVERRIDES = {
-    // Allemagne 1-1 Paraguay (TAB 4-5) -> Paraguay qualifié
-    73: { home: 4, away: 5 },
+    // L'API wcup2026.org fournit maintenant les tirs au but via action=match,
+    // donc les overrides statiques ne sont plus nécessaires.
   };
 
   const TOURNAMENT_STRUCTURE = [

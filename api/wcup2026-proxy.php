@@ -86,7 +86,7 @@ if (!is_array($data) || !isset($data['matches']) || !is_array($data['matches']))
     sendError('Invalid payload from upstream', 502);
 }
 
-// 4) Fusionner les détails de match déjà en cache (buteurs, stats)
+// 4) Fusionner les détails de match (buteurs, stats)
 function getMatchDetail($id, $cacheDir) {
     $f = $cacheDir . '/wcup2026-match-' . $id . '.json';
     if (!file_exists($f)) return null;
@@ -97,6 +97,54 @@ function getMatchDetail($id, $cacheDir) {
     return $d['match'];
 }
 
+function fetchUrl($url, $timeout = 15) {
+    $ch = curl_init($url);
+    curl_setopt_array($ch, [
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_FOLLOWLOCATION => true,
+        CURLOPT_TIMEOUT => $timeout,
+        CURLOPT_CONNECTTIMEOUT => 10,
+        CURLOPT_SSL_VERIFYPEER => true,
+        CURLOPT_HTTPHEADER => [
+            'Accept: application/json',
+            'User-Agent: foot.tmktools.com-cache-proxy/1.0',
+        ],
+    ]);
+    return $ch;
+}
+
+function fetchMultiDetails(array $ids) {
+    if (empty($ids)) return [];
+    $mh = curl_multi_init();
+    $handles = [];
+    foreach ($ids as $id) {
+        $url = 'https://wcup2026.org/api/data.php?action=match&id=' . intval($id);
+        $ch = fetchUrl($url, 15);
+        curl_multi_add_handle($mh, $ch);
+        $handles[$id] = $ch;
+    }
+    $running = null;
+    do {
+        curl_multi_exec($mh, $running);
+        curl_multi_select($mh);
+    } while ($running > 0);
+
+    $results = [];
+    foreach ($handles as $id => $ch) {
+        $raw = curl_multi_getcontent($ch);
+        curl_multi_remove_handle($mh, $ch);
+        curl_close($ch);
+        if (empty($raw)) continue;
+        $d = json_decode($raw, true);
+        if (is_array($d) && isset($d['match']) && is_array($d['match'])) {
+            $results[$id] = $d['match'];
+        }
+    }
+    curl_multi_close($mh);
+    return $results;
+}
+
+$detailsToFetch = [];
 if (isset($data['matches']) && is_array($data['matches'])) {
     foreach ($data['matches'] as &$match) {
         $status = strtolower($match['status'] ?? '');
@@ -110,9 +158,35 @@ if (isset($data['matches']) && is_array($data['matches'])) {
                     $match['score'] = $detail['score'];
                 }
             }
+            $hasGoals = !empty($match['goals1']) || !empty($match['goals2']);
+            if (!$hasGoals) {
+                $detailsToFetch[] = intval($match['id']);
+            }
         }
     }
     unset($match);
+}
+
+// 4b) Compléter les détails manquants en direct
+if (!empty($detailsToFetch)) {
+    $batches = array_chunk($detailsToFetch, 20);
+    foreach ($batches as $batch) {
+        $fetched = fetchMultiDetails($batch);
+        foreach ($data['matches'] as &$match) {
+            $id = intval($match['id'] ?? 0);
+            if (!isset($fetched[$id])) continue;
+            $detail = $fetched[$id];
+            if (isset($detail['goals1'])) $match['goals1'] = $detail['goals1'];
+            if (isset($detail['goals2'])) $match['goals2'] = $detail['goals2'];
+            if (isset($detail['score']) && is_array($detail['score']) && count($detail['score']) === 2) {
+                $match['score'] = $detail['score'];
+            }
+            // Pré-chauffer le cache de détail
+            $detailCacheFile = $cacheDir . '/wcup2026-match-' . $id . '.json';
+            @file_put_contents($detailCacheFile, json_encode(['match' => $detail], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+        }
+        unset($match);
+    }
 }
 
 // 5) Écrire le cache
